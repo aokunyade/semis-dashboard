@@ -1,0 +1,257 @@
+{
+  "_comment": "Semis dashboard taxonomy. fx=exchange for foreign-listed (Yahoo suffix in ticker); null=US. themes reference thematic baskets. Edit this file to add/remove names.",
+  "themes": {
+    "tpu": "TPU-focused (Google)",
+    "trainium": "Trainium-focused (Amazon)",
+    "openai": "OpenAI-focused",
+    "anthropic": "Anthropic-focused",
+    "space": "Space Semis"
+  },
+  "sectors": [
+    {
+      "name": "GPUs / AI Accelerators",
+      "tickers": [
+        {"t": "NVDA", "n": "Nvidia", "themes": ["openai", "anthropic"]},
+        {"t": "AMD", "n": "AMD", "themes": ["openai", "space"]}
+      ]
+    },
+    {
+      "name": "Custom ASIC",
+      "tickers": [
+        {"t": "AVGO", "n": "Broadcom", "themes": ["tpu", "openai", "anthropic"]},
+        {"t": "MRVL", "n": "Marvell", "themes": ["tpu", "trainium", "anthropic"]},
+        {"t": "3661.TW", "n": "Alchip", "fx": "TWSE", "themes": ["trainium"]},
+        {"t": "3443.TW", "n": "GUC", "fx": "TWSE", "themes": ["trainium"]},
+        {"t": "6526.T", "n": "Socionext", "fx": "TSE"},
+        {"t": "2454.TW", "n": "MediaTek", "fx": "TWSE", "themes": ["tpu"]}
+      ]
+    },
+    {
+      "name": "CPUs",
+      "tickers": [
+        {"t": "INTC", "n": "Intel"},
+        {"t": "ARM", "n": "Arm Holdings"},
+        {"t": "QCOM", "n": "Qualcomm"}
+      ]
+    },
+    {
+      "name": "EDA / IP",
+      "tickers": [
+        {"t": "SNPS", "n": "Synopsys"},
+        {"t": "CDNS", "n": "Cadence"},
+        {"t": "CEVA", "n": "CEVA"}
+      ]
+    },
+    {
+      "name": "Foundry",
+      "tickers": [
+        {"t": "TSM", "n": "TSMC", "themes": ["tpu", "trainium", "openai", "anthropic"]},
+        {"t": "GFS", "n": "GlobalFoundries"},
+        {"t": "UMC", "n": "UMC"},
+        {"t": "0981.HK", "n": "SMIC", "fx": "HKEX"}
+      ]
+    },
+    {
+      "name": "Adv Packaging / OSAT",
+      "tickers": [
+        {"t": "ASX", "n": "ASE Technology"},
+        {"t": "AMKR", "n": "Amkor"},
+        {"t": "0522.HK", "n": "ASMPT", "fx": "HKEX"},
+        {"t": "6239.TW", "n": "Powertech", "fx": "TWSE"},
+        {"t": "2449.TW", "n": "KYEC", "fx": "TWSE"}
+      ]
+    },
+    {
+      "name": "DRAM / HBM",
+      "tickers": [
+        {"t": "000660.KS", "n": "SK Hynix", "fx": "KRX", "themes": ["tpu"]},
+        {"t": "005930.KS", "n": "Samsung Elec", "fx": "KRX", "themes": ["tpu"]},
+        {"t": "MU", "n": "Micron", "themes": ["trainium", "anthropic"]},
+        {"t": "2408.TW", "n": "Nanya", "fx": "TWSE"},
+        {"t": "2344.TW", "n": "Winbond", "fx": "TWSE"},
+        {"t": "6770.TW", "n": "PSMC", "fx": "TWSE"}
+      ]
+    },
+    {
+      "name": "NAND",
+      "tickers": [
+        {"t": "SNDK", "n": "Sandisk"},
+        {"t": "285A.T", "n": "Kioxia", "fx": "TSE"}
+      ]
+    },
+    {
+      "name": "Storage / HDD",
+      "tickers": [
+        {"t": "STX", "n": "Seagate"},
+        {"t": "WDC", "n": "Western Digital"},
+        {"t": "SIMO", "n": "Silicon Motion"},
+        {"t": "8299.TWO", "n": "Phison", "fx": "TPEx"}
+      ]
+    },
+    {
+      "name": "Optical - InP Substrate",
+      "tickers": [
+        {"t": "AXTI", "n": "AXT"},
+        {"t": "5802.T", "n": "Sumitomo Electric", "fx": "TSE"},
+        {"t": "5016.T", "n": "JX Advanced Metals", "fx": "TSE"},
+        {"t": "IQE.L", "n": "IQE", "fx": "LSE"}
+      ]
+    },
+    {
+      "name": "Optical - Equipment",
+      "tickers": [
+        {"t": "VECO", "n": "Veeco"},
+        {"t": "AIXA.DE", "n": "AIXTRON", "fx": "Xetra"}
+      ]
+    },
+    {
+      "name": "Optical - Silicon Photonics",
+      "tickers": [
+        {"t": "TSEM", "n": "Tower Semi"},
+        {"t": "POET", "n": "POET"}
+      ]
+    },
+    {
+      "name": "Optical - Transceivers",
+      "tickers": [
+        {"t": "COHR", "n": "Coherent"},
+        {"t": "LITE", "n": "Lumentum"},
+        {"t": "FN", "n": "Fabrinet"},
+        {"t": "AAOI", "n": "Applied Optoelectronics"},
+        {"t": "300308.SZ", "n": "Innolight", "fx": "SZSE"},
+        {"t": "300502.SZ", "n": "Eoptolink", "fx": "SZSE"}
+      ]
+    },
+    {
+      "name": "Optical DSP / Connectivity",
+      "tickers": [
+        {"t": "CRDO", "n": "Credo"},
+        {"t": "ALAB", "n": "Astera Labs"},
+        {"t": "MTSI", "n": "MACOM"},
+        {"t": "SMTC", "n": "Semtech"},
+        {"t": "MXL", "n": "MaxLinear"}
+      ]
+    },
+    {
+      "name": "Networking / Switching",
+      "tickers": [
+        {"t": "ANET", "n": "Arista"},
+        {"t": "CSCO", "n": "Cisco"},
+        {"t": "CIEN", "n": "Ciena"}
+      ]
+    },
+    {
+      "name": "Semi Cap Equipment",
+      "tickers": [
+        {"t": "ASML", "n": "ASML"},
+        {"t": "AMAT", "n": "Applied Materials"},
+        {"t": "LRCX", "n": "Lam Research"},
+        {"t": "KLAC", "n": "KLA"},
+        {"t": "TER", "n": "Teradyne"},
+        {"t": "8035.T", "n": "Tokyo Electron", "fx": "TSE"},
+        {"t": "6857.T", "n": "Advantest", "fx": "TSE"},
+        {"t": "6146.T", "n": "Disco", "fx": "TSE"},
+        {"t": "6920.T", "n": "Lasertec", "fx": "TSE"},
+        {"t": "BESI.AS", "n": "BE Semiconductor", "fx": "Euronext"},
+        {"t": "KLIC", "n": "Kulicke & Soffa"},
+        {"t": "ONTO", "n": "Onto Innovation"},
+        {"t": "CAMT", "n": "Camtek"},
+        {"t": "NVMI", "n": "Nova"},
+        {"t": "FORM", "n": "FormFactor"},
+        {"t": "ACLS", "n": "Axcelis"},
+        {"t": "ASM.AS", "n": "ASM International", "fx": "Euronext"}
+      ]
+    },
+    {
+      "name": "Wafers & Materials",
+      "tickers": [
+        {"t": "4063.T", "n": "Shin-Etsu", "fx": "TSE"},
+        {"t": "3436.T", "n": "SUMCO", "fx": "TSE"},
+        {"t": "6488.TWO", "n": "GlobalWafers", "fx": "TPEx"},
+        {"t": "WAF.DE", "n": "Siltronic", "fx": "Xetra"},
+        {"t": "ENTG", "n": "Entegris"},
+        {"t": "2802.T", "n": "Ajinomoto", "fx": "TSE"},
+        {"t": "4186.T", "n": "Tokyo Ohka", "fx": "TSE"},
+        {"t": "4004.T", "n": "Resonac", "fx": "TSE"},
+        {"t": "MTRN", "n": "Materion"}
+      ]
+    },
+    {
+      "name": "Analog / Power / Specialty",
+      "tickers": [
+        {"t": "TXN", "n": "Texas Instruments", "themes": ["space"]},
+        {"t": "ADI", "n": "Analog Devices", "themes": ["space"]},
+        {"t": "NXPI", "n": "NXP"},
+        {"t": "MCHP", "n": "Microchip", "themes": ["space"]},
+        {"t": "ON", "n": "onsemi"},
+        {"t": "MPWR", "n": "Monolithic Power"},
+        {"t": "POWI", "n": "Power Integrations"},
+        {"t": "VICR", "n": "Vicor"},
+        {"t": "NVTS", "n": "Navitas"},
+        {"t": "WOLF", "n": "Wolfspeed"},
+        {"t": "IFX.DE", "n": "Infineon", "fx": "Xetra"},
+        {"t": "STM", "n": "STMicroelectronics"},
+        {"t": "6723.T", "n": "Renesas", "fx": "TSE"},
+        {"t": "MRCY", "n": "Mercury Systems", "themes": ["space"]},
+        {"t": "TDY", "n": "Teledyne", "themes": ["space"]}
+      ]
+    },
+    {
+      "name": "Power & Cooling Infra",
+      "tickers": [
+        {"t": "VRT", "n": "Vertiv"},
+        {"t": "ETN", "n": "Eaton"},
+        {"t": "NVT", "n": "nVent"},
+        {"t": "FLEX", "n": "Flex"},
+        {"t": "JBL", "n": "Jabil"},
+        {"t": "2308.TW", "n": "Delta Electronics", "fx": "TWSE"},
+        {"t": "3017.TW", "n": "AVC", "fx": "TWSE"}
+      ]
+    },
+    {
+      "name": "MLCCs / Passives",
+      "tickers": [
+        {"t": "6981.T", "n": "Murata", "fx": "TSE"},
+        {"t": "6762.T", "n": "TDK", "fx": "TSE"},
+        {"t": "6976.T", "n": "Taiyo Yuden", "fx": "TSE"},
+        {"t": "009150.KS", "n": "Samsung Electro-Mech", "fx": "KRX"},
+        {"t": "2327.TW", "n": "Yageo", "fx": "TWSE"},
+        {"t": "VSH", "n": "Vishay"}
+      ]
+    },
+    {
+      "name": "PCB / Substrates",
+      "tickers": [
+        {"t": "TTMI", "n": "TTM Technologies"},
+        {"t": "4062.T", "n": "Ibiden", "fx": "TSE"},
+        {"t": "4958.TW", "n": "Zhen Ding", "fx": "TWSE"},
+        {"t": "3037.TW", "n": "Unimicron", "fx": "TWSE"},
+        {"t": "8046.TW", "n": "Nan Ya PCB", "fx": "TWSE"},
+        {"t": "ATS.VI", "n": "AT&S", "fx": "Vienna"},
+        {"t": "011070.KS", "n": "LG Innotek", "fx": "KRX"}
+      ]
+    },
+    {
+      "name": "Connectors / Interconnect",
+      "tickers": [
+        {"t": "APH", "n": "Amphenol"},
+        {"t": "TEL", "n": "TE Connectivity"},
+        {"t": "VLX.L", "n": "Volex", "fx": "LSE"}
+      ]
+    },
+    {
+      "name": "Customers / Systems",
+      "tickers": [
+        {"t": "AMZN", "n": "Amazon", "themes": ["trainium"]},
+        {"t": "MSFT", "n": "Microsoft"},
+        {"t": "GOOGL", "n": "Alphabet", "themes": ["tpu"]},
+        {"t": "META", "n": "Meta"},
+        {"t": "ORCL", "n": "Oracle"},
+        {"t": "SMCI", "n": "Super Micro"},
+        {"t": "DELL", "n": "Dell"},
+        {"t": "CLS", "n": "Celestica", "themes": ["tpu", "openai"]},
+        {"t": "CRWV", "n": "CoreWeave"}
+      ]
+    }
+  ]
+}
