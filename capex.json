@@ -1,0 +1,27 @@
+{
+  "note": "GPU-buyer capex, $B calendar year. 2023-2025 reported, 2026 = company guidance midpoints, 2027e-2029e = street consensus for big-5 aggregate (Goldman/Needham cites, Jul 2026); per-company consensus derived from 2026 spend shares. Edit freely - the chart reads this file.",
+  "companies": [
+    {"t": "AMZN", "name": "Amazon", "color": "#d29922"},
+    {"t": "MSFT", "name": "Microsoft", "color": "#58a6ff"},
+    {"t": "GOOGL", "name": "Google", "color": "#3fb950"},
+    {"t": "META", "name": "Meta", "color": "#bc8cff"},
+    {"t": "ORCL", "name": "Oracle", "color": "#39c5cf"}
+  ],
+  "years": ["2023", "2024", "2025", "2026", "2027e", "2028e", "2029e"],
+  "estimateYears": ["2027e", "2028e", "2029e"],
+  "actuals": {
+    "AMZN":  [52.7, 78.0, 125.0, 200.0],
+    "MSFT":  [35.0, 55.7, 123.0, 190.0],
+    "GOOGL": [32.3, 52.5, 90.0, 180.0],
+    "META":  [28.1, 39.2, 72.2, 125.0],
+    "ORCL":  [8.7, 15.2, 38.1, 50.0]
+  },
+  "consensusTotal": {"2027e": 920.0, "2028e": 1030.0, "2029e": 1120.0},
+  "sources": [
+    "2025 actuals: company filings (big-4 ~$410B, big-5 ~$448B)",
+    "2026: guidance midpoints (~$745B big-5)",
+    "2027e: street consensus ~$920B (Goldman note, Jun 2026)",
+    "2028e: consensus ~$1.03T (Needham, May 2026)",
+    "2029e: extrapolation of consensus deceleration (+8-9%) - editable"
+  ]
+}
