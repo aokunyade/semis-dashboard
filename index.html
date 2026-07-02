@@ -59,6 +59,27 @@
   .tile.dim{opacity:.32}
   .foot{color:var(--head);font-size:11px;padding:14px 18px}
   .hidden{display:none}
+  /* cycle tab */
+  .cy{padding:12px 18px 40px}
+  .cycard{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .cygrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:12px}
+  .cylabel{color:var(--head);font-size:10px;text-transform:uppercase;letter-spacing:.4px}
+  .cyval{color:#e6edf6;font-size:19px;font-weight:700;margin:2px 0}
+  .cyval small{font-size:11px;font-weight:600;margin-left:6px}
+  .cysrc{color:var(--head);font-size:10px;margin-top:2px}
+  .cyphase{font-size:14px;font-weight:700}
+  .cybar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:8px 0 4px;position:relative}
+  .cybar div{flex:1}
+  .cymark{position:absolute;top:-4px;width:2px;height:16px;background:#fff;border-radius:1px}
+  .cyaxis{display:flex;justify-content:space-between;color:var(--head);font-size:10px}
+  .cysig{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .chip{font-size:10px;border:1px solid var(--line);border-radius:4px;padding:2px 7px;color:var(--dim)}
+  .chip.hot{color:#ffb38a;border-color:#4a2d18;background:#1d1206}
+  .chip.cold{color:#8ad1ff;border-color:#17415f;background:#081826}
+  .hl{margin:3px 0;font-size:12px;color:var(--txt)}
+  .hl .tag{font-size:9px;border-radius:3px;padding:1px 5px;margin-right:6px;vertical-align:middle}
+  .hl .tag.bubble{background:#2d1416;color:#ff9a93;border:1px solid #58262b}
+  .hl .tag.demand{background:#0f2417;color:#7ee2a0;border:1px solid #1f4a2e}
 </style>
 </head>
 <body>
@@ -72,6 +93,7 @@
   <span class="seg" id="view">
     <button data-v="table" class="on">Table</button>
     <button data-v="heat">Heatmap</button>
+    <button data-v="cycle">Cycle</button>
   </span>
   <span class="seg" id="groupby">
     <button data-g="sector" class="on">By sector</button>
@@ -90,6 +112,7 @@
 </div>
 
 <div class="hm hidden" id="heatWrap"></div>
+<div class="cy hidden" id="cycleWrap"></div>
 
 <div class="foot" id="foot"></div>
 
@@ -104,16 +127,17 @@ const COLS = [
   {k:"ret5y", label:"5Y",    grp:""},
   {k:"val",   label:"Val",   grp:"VALUATION"},
 ];
-let CFG=null, MKT=null, state={view:"table", group:"sector", sort:"ret1d", dir:-1, filter:""};
+let CFG=null, MKT=null, CYC=null, state={view:"table", group:"sector", sort:"ret1d", dir:-1, filter:""};
 const collapsed = new Set();
 
 async function load(){
   try{
-    const [c,m] = await Promise.all([
+    const [c,m,cy] = await Promise.all([
       fetch("sectors.json").then(r=>r.json()),
-      fetch("market.json").then(r=>r.json()).catch(()=>({stocks:{}}))
+      fetch("market.json").then(r=>r.json()).catch(()=>({stocks:{}})),
+      fetch("cycle.json").then(r=>r.json()).catch(()=>null)
     ]);
-    CFG=c; MKT=m;
+    CFG=c; MKT=m; CYC=cy;
     const n = countTickers();
     const upd = m.updated ? new Date(m.updated).toLocaleString() : "no data yet";
     document.getElementById("sub").innerHTML =
@@ -227,13 +251,100 @@ function renderHeat(){
     heatSection("% Daily","ret1d",6) + heatSection("% YTD","retYtd",60);
 }
 
+// ---- cycle render ----
+function spark(series, color){
+  if(!series || series.length<2) return "";
+  const vals=series.map(s=>s[1]).filter(v=>v!=null);
+  const min=Math.min(...vals), max=Math.max(...vals), rng=(max-min)||1;
+  const pts=series.filter(s=>s[1]!=null).map((s,i,arr)=>
+    `${(i/(arr.length-1)*160).toFixed(1)},${(30-(s[1]-min)/rng*26+2).toFixed(1)}`).join(" ");
+  return `<svg viewBox="0 0 160 34" width="100%" height="34" preserveAspectRatio="none">`+
+         `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5"/></svg>`;
+}
+function trendColor(v, invert){
+  if(v==null) return "var(--dim)";
+  const good = invert ? v<0 : v>0;
+  return good ? "var(--green)" : "var(--red)";
+}
+function cyCard(label, valueHtml, series, color, src){
+  return `<div class="cycard"><div class="cylabel">${label}</div>`+
+         `<div class="cyval">${valueHtml}</div>${series?spark(series,color):""}`+
+         `<div class="cysrc">${src}</div></div>`;
+}
+const SIG_LABELS={soxSpx:"SOX/SPX",soxPe:"Valuation",invDays:"Inventory",analogYoY:"Analog",
+                  memRel3m:"Memory",capexYoY:"Capex",fredIp:"Production",sentiment:"Headlines"};
+function renderCycle(){
+  const w=document.getElementById("cycleWrap");
+  if(!CYC){w.innerHTML=`<div class="cycard">No cycle.json yet — run fetch_cycle_data.py or wait for the next scheduled refresh.</div>`;return;}
+  const ind=CYC.indicators||{}, comp=CYC.composite;
+  let html="";
+  if(comp){
+    const pct=((comp.score+1)/2*100).toFixed(0);
+    const pc = comp.score>0.35?"var(--red)":(comp.score<-0.1?"var(--green)":"var(--amber)");
+    html+=`<div class="cycard"><div style="display:flex;justify-content:space-between;align-items:center">`+
+      `<span class="cylabel">Composite cycle read</span>`+
+      `<span class="cyphase" style="color:${pc}">${comp.phase}</span></div>`+
+      `<div class="cybar"><div style="background:#1d9e75"></div><div style="background:#3fb950"></div>`+
+      `<div style="background:#d29922"></div><div style="background:#f85149"></div>`+
+      `<span class="cymark" style="left:${pct}%"></span></div>`+
+      `<div class="cyaxis"><span>Trough</span><span>Early</span><span>Mid</span><span>Late</span><span>Peak</span></div>`+
+      `<div class="cysig">`+Object.entries(comp.signals).map(([k,v])=>
+        `<span class="chip ${v>0?"hot":(v<0?"cold":"")}">${SIG_LABELS[k]||k} ${v>0?"▲ hot":(v<0?"▼ cold":"— neutral")}</span>`).join("")+
+      `</div></div>`;
+  }
+  html+=`<div class="cygrid">`;
+  const s=ind.soxSpx;
+  if(s) html+=cyCard("SOX / SPX ratio",
+    `${s.value}<small style="color:${trendColor(s.vsAvg1y)}">${s.vsAvg1y>0?"+":""}${s.vsAvg1y}% vs 1y avg</small>`,
+    s.series,"#58a6ff","^SOX vs ^GSPC · 10y monthly");
+  const p=ind.soxPe;
+  if(p) html+=cyCard("SOX multiple (trailing P/E)",
+    `${p.value}x<small style="color:${p.premium>20?"var(--red)":(p.premium<-10?"var(--green)":"var(--amber)")}">${p.premium>0?"+":""}${p.premium}% vs ${p.avg10y}x 10y baseline</small>`,
+    null,null,`cap-weighted, ${p.names} SOX names · baseline editable in script`);
+  const iv=ind.invDays;
+  if(iv) html+=cyCard("Inventory days — bellwethers",
+    `${iv.value}d<small style="color:${iv.delta>5?"var(--red)":(iv.delta<-5?"var(--green)":"var(--amber)")}">${iv.delta!=null?(iv.delta>0?"+":"")+iv.delta+"d vs yr-ago":""}</small>`,
+    iv.series,"#d29922",`${iv.names} USD reporters · quarterly filings`);
+  const a=ind.analogYoY;
+  if(a) html+=cyCard("Analog revenue YoY",
+    `${a.value>0?"+":""}${a.value}%<small style="color:${trendColor(a.value)}">${a.prev!=null?(a.value>a.prev?"accelerating":"decelerating"):""}</small>`,
+    a.series,"#3fb950","TXN+ADI+MCHP+NXPI · early-cycle tell");
+  const m=ind.memRel3m;
+  if(m) html+=cyCard("Memory vs SOX · 3m relative",
+    `${m.value>0?"+":""}${m.value}%<small style="color:${trendColor(m.value)}">basket ${m.basket3m>0?"+":""}${m.basket3m}% vs SOX ${m.sox3m>0?"+":""}${m.sox3m}%</small>`,
+    null,null,"MU + SK Hynix + Kioxia, local ccy");
+  const cx=ind.capexYoY;
+  if(cx) html+=cyCard("Hyperscaler capex YoY",
+    `${cx.value>0?"+":""}${cx.value}%<small style="color:var(--dim)">$${cx.latestQB}B latest Q</small>`,
+    cx.series,"#58a6ff","AMZN MSFT GOOGL META ORCL · cash-flow stmts");
+  const f=ind.fredIp;
+  if(f) html+=cyCard("US semi production YoY",
+    `${f.value>0?"+":""}${f.value}%<small style="color:${f.value>f.prev?"var(--green)":"var(--red)"}">${f.value>f.prev?"accelerating":"decelerating"} · ${f.asOf}</small>`,
+    f.series,"#d29922","FRED IPG3344S · monthly");
+  const se=ind.sentiment;
+  if(se){
+    const tone=se.score>0.3?["Bubble talk dominates","var(--red)"]:(se.score<-0.3?["Demand talk dominates","var(--green)"]:["Mixed tone","var(--amber)"]);
+    html+=`<div class="cycard" style="grid-column:1/-1"><div class="cylabel">WSJ headline check — last 30 days</div>`+
+      `<div class="cyval">${tone[0]}<small style="color:${tone[1]}">${se.bubble} bubble · ${se.demand} demand · ${se.neutral} neutral (${se.total} headlines)</small></div>`+
+      (se.headlines||[]).map(h=>`<div class="hl"><span class="tag ${h.tag}">${h.tag}</span>${h.t}</div>`).join("")+
+      `<div class="cysrc">Google News RSS, wsj.com only · keyword-scored · crude by design</div></div>`;
+  }
+  html+=`</div>`;
+  const upd=CYC.updated?new Date(CYC.updated).toLocaleString():"";
+  html+=`<div class="cysrc" style="margin-top:10px">Cycle data updated ${upd}. Composite = simple average of signal scores (-1 cold … +1 hot); see fetch_cycle_data.py for thresholds.</div>`;
+  w.innerHTML=html;
+}
+
 function render(){
-  const tableOn=state.view==="table";
-  document.getElementById("tableWrap").classList.toggle("hidden",!tableOn);
-  document.getElementById("heatWrap").classList.toggle("hidden",tableOn);
-  if(tableOn) renderTable(); else renderHeat();
+  const v=state.view;
+  document.getElementById("tableWrap").classList.toggle("hidden",v!=="table");
+  document.getElementById("heatWrap").classList.toggle("hidden",v!=="heat");
+  document.getElementById("cycleWrap").classList.toggle("hidden",v!=="cycle");
+  document.getElementById("groupby").style.display = v==="cycle" ? "none" : "";
+  document.getElementById("filter").style.display = v==="cycle" ? "none" : "";
+  if(v==="table") renderTable(); else if(v==="heat") renderHeat(); else renderCycle();
   document.getElementById("foot").innerHTML =
-    `Data via Yahoo Finance (yfinance), refreshed daily after US close by GitHub Actions. `+
+    `Data via Yahoo Finance (yfinance), FRED and Google News RSS, refreshed daily after US close by GitHub Actions. `+
     `Foreign-listed (FX) names shown in local-currency price/returns. Not investment advice.`;
 }
 
