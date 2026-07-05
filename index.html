@@ -40,6 +40,7 @@
   tbody tr:hover td{background:#0f1726}
   .tk{font-weight:700;color:#e6edf6}
   .nm{color:var(--dim);max-width:190px;overflow:hidden;text-overflow:ellipsis}
+  .sec{color:var(--head);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .fx{display:inline-block;margin-left:5px;font-size:9px;color:var(--amber);border:1px solid #3a3015;background:#1d1808;border-radius:3px;padding:0 4px;vertical-align:middle}
   .grouphdr td{background:#0a0f18;color:var(--accent);font-weight:700;font-size:12px;text-transform:uppercase;
     letter-spacing:.5px;padding:8px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);cursor:pointer}
@@ -121,7 +122,7 @@
     input[type=text]{width:100%;font-size:16px}  /* 16px stops iOS zoom-on-focus */
     .legend{display:none}
     .wrap{padding:0 4px 60px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-    #tableWrap table{min-width:720px}
+    #tableWrap table{min-width:820px}
     thead th{position:static}
     .grouphdr td{position:static}
     .hm{padding:6px 10px 40px}
@@ -209,6 +210,10 @@ async function load(){
   }
 }
 function countTickers(){let s=new Set();CFG.sectors.forEach(x=>x.tickers.forEach(t=>s.add(t.t)));return s.size;}
+function secOf(t){
+  if(!secOf.map){secOf.map={};CFG.sectors.forEach(s=>s.tickers.forEach(x=>{if(!(x.t in secOf.map))secOf.map[x.t]=s.name;}));}
+  return secOf.map[t]||"";
+}
 
 // ---- grouping ----
 function groups(){
@@ -222,7 +227,7 @@ function groups(){
 function rowsFor(tickers){
   const f=state.filter.toLowerCase();
   let rows=tickers.map(t=>({...t, d:(MKT.stocks||{})[t.t]||{}}))
-    .filter(r=> !f || r.t.toLowerCase().includes(f) || (r.n||"").toLowerCase().includes(f));
+    .filter(r=> !f || r.t.toLowerCase().includes(f) || (r.n||"").toLowerCase().includes(f) || secOf(r.t).toLowerCase().includes(f));
   const k=state.sort;
   rows.sort((a,b)=>{
     let va=a.d[k], vb=b.d[k];
@@ -248,7 +253,7 @@ function fmtVal(d){ return d.val==null?'<span class="na">—</span>':`<span clas
 // ---- table render ----
 function renderHead(){
   const h=document.getElementById("head");
-  let html=`<th class="l">Ticker</th><th class="l">Company</th>`;
+  let html=`<th class="l">Ticker</th><th class="l">Company</th><th class="l">Sub-sector</th>`;
   COLS.forEach(c=>{
     const on=state.sort===c.k?"sortcol":"";
     const arrow=state.sort===c.k?(state.dir<0?" ▼":" ▲"):"";
@@ -269,17 +274,18 @@ function renderTable(){
     const rows=rowsFor(g.tickers);
     if(!rows.length) return;
     const isC=collapsed.has(g.name);
-    html+=`<tr class="grouphdr" data-g="${g.name}"><td colspan="${COLS.length+2}">${isC?"▶":"▼"} ${g.name} <span class="cnt">(${rows.length})</span></td></tr>`;
+    html+=`<tr class="grouphdr" data-g="${g.name}"><td colspan="${COLS.length+3}">${isC?"▶":"▼"} ${g.name} <span class="cnt">(${rows.length})</span></td></tr>`;
     if(isC) return;
     rows.forEach(r=>{
       html+=`<tr><td class="l"><span class="tk">${r.t.split(".")[0]}</span>${r.fx?`<span class="fx" title="${r.fx} · ${r.d.cur||""}">FX</span>`:""}</td>`+
             `<td class="l nm">${r.n||""}</td>`+
+            `<td class="l sec" title="${secOf(r.t)}">${secOf(r.t)}</td>`+
             `<td>${fmtLast(r.d)}</td>`+
             COLS.slice(1,7).map(c=>`<td>${fmtPct(r.d[c.k])}</td>`).join("")+
             `<td>${fmtVal(r.d)}</td></tr>`;
     });
   });
-  body.innerHTML=html||`<tr><td colspan="${COLS.length+2}" style="padding:20px;color:var(--head)">No matches.</td></tr>`;
+  body.innerHTML=html||`<tr><td colspan="${COLS.length+3}" style="padding:20px;color:var(--head)">No matches.</td></tr>`;
   body.querySelectorAll(".grouphdr").forEach(tr=>tr.onclick=()=>{
     const g=tr.dataset.g; collapsed.has(g)?collapsed.delete(g):collapsed.add(g); render();
   });
