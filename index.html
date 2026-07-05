@@ -103,6 +103,7 @@
   .cscard h3 .r{font-size:12px;font-weight:700;white-space:nowrap}
   .csmeta{color:var(--head);font-size:10px;margin:2px 0 4px}
   .csnote{color:var(--dim);font-size:11px;margin-top:5px;line-height:1.45}
+  .cssubb{color:var(--txt);font-size:11px;margin-top:6px;line-height:1.5;border-left:2px solid #2a3a55;padding:2px 0 2px 8px;background:#0c1220;border-radius:0 4px 4px 0}
   .csb{margin-top:8px}
   .csb div{font-size:11.5px;color:var(--txt);margin:5px 0;padding-left:14px;position:relative;line-height:1.5}
   .csb div:before{content:"▸";position:absolute;left:0;color:var(--accent)}
@@ -453,16 +454,25 @@ function csChart(series,color,h){
     `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.6"/></svg>`+
     (useLog?`<span class="logchip">log scale</span>`:"");
 }
+function csMcap(x){return x.mcap?`<div class="csmeta">mkt cap ${x.mcap.replace(/->/g,"→")} <span style="opacity:.6">(est.)</span></div>`:"";}
+function csSub(x){return (x.sub||[]).map(s=>`<div class="cssubb">${s}</div>`).join("");}
 function csNameCard(x,win){
   const cls=win?"pos":"neg", color=win?"var(--green)":"var(--red)";
   if(x.nar)
     return `<div class="cscard nar"><h3>${x.t} — ${x.n}<span class="delchip">delisted / no price history</span></h3>`+
-           `<div class="csnote">${x.note||""}</div></div>`;
+           csMcap(x)+`<div class="csnote">${x.note||""}</div>`+csSub(x)+`</div>`;
   const ret=x.ret!=null?`<span class="r ${x.ret>=0?"pos":"neg"}">${x.ret>0?"+":""}${x.ret.toLocaleString()}%</span>`:"";
   const dd=x.dd&&x.dd.dd<-25?`<span class="csmeta">max DD ${x.dd.dd}% (${x.dd.peakDate} → ${x.dd.troughDate})</span>`:"";
   const span=x.series?`${x.series[0][0].slice(0,4)}–${x.series[x.series.length-1][0].slice(0,4)}`:"";
   return `<div class="cscard"><h3>${x.t} — ${x.n}${ret}</h3><div class="csmeta">${span} ${dd?"· ":""}${dd?x.dd.dd+"% max DD":""}</div>`+
-         csChart(x.series,color)+`<div class="csnote">${x.note||""}</div></div>`;
+         csMcap(x)+csChart(x.series,color)+`<div class="csnote">${x.note||""}</div>`+csSub(x)+`</div>`;
+}
+function segBlock(list,label){
+  const rows=(list||[]).filter(x=>x.desc||x.seg);
+  if(!rows.length) return "";
+  return `<div class="cscard" style="margin-top:8px"><div class="fslabel">${label}</div><div class="csb">`+
+    rows.map(x=>`<div><b>${x.t}</b> — ${x.desc||""}${x.seg?` · <span style="color:var(--dim)">${x.seg.replace(/->/g,"→")}</span>`:""}</div>`).join("")+
+    `</div></div>`;
 }
 function renderCases(){
   const w=document.getElementById("casesWrap");
@@ -484,7 +494,9 @@ function renderCases(){
         csChart(cy.index.series,"#58a6ff",64)+`</div>`;
     }
     html+=`<div class="wl win">Winners</div><div class="csgrid">${(cy.winners||[]).map(x=>csNameCard(x,true)).join("")}</div>`;
+    html+=segBlock(cy.winners,"Winners — business & growth-segment share of revenue, start → end (est.)");
     html+=`<div class="wl lose">Losers</div><div class="csgrid">${(cy.losers||[]).map(x=>csNameCard(x,false)).join("")}</div>`;
+    html+=segBlock(cy.losers,"Losers — business & growth-segment share of revenue, start → end (est.)");
     html+=`<div class="cscard" style="margin-top:10px"><div class="fslabel">PM notes — inflection · peak/sell · short/cover</div>`+
       `<div class="csb">${(cy.bullets||[]).map(b=>`<div>${b}</div>`).join("")}</div></div>`;
   });
