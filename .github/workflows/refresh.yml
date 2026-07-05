@@ -38,11 +38,17 @@ jobs:
       - name: Fetch neocloud deals
         run: python fetch_deals.py
 
+      - name: Fetch case study data (first run, then weekly on Mondays)
+        run: |
+          if [ ! -f casestudies.json ] || [ "$(date +%u)" = "1" ]; then
+            python fetch_casestudies.py
+          fi
+
       - name: Commit refreshed data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add market.json cycle.json deals.json
+          git add market.json cycle.json deals.json casestudies.json factset.json
           git diff --cached --quiet || git commit -m "chore: daily data refresh [skip ci]"
           git push
 
