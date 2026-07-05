@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0e14">
 <title>Semis Cockpit</title>
 <style>
   :root{
@@ -108,6 +109,32 @@
   .delchip{font-size:9px;border:1px solid #4a2d18;background:#1d1206;color:#ffb38a;border-radius:3px;padding:0 4px;margin-left:6px;vertical-align:middle}
   .wl{color:var(--head);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px;font-weight:700}
   .wl.win{color:var(--green)} .wl.lose{color:var(--red)}
+  /* ---- mobile / iPhone ---- */
+  html{-webkit-text-size-adjust:100%}
+  .scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  @media (max-width:700px){
+    header{padding:10px 12px 4px}
+    h1{font-size:16px}
+    .controls{padding:8px 10px;gap:6px;position:static}
+    .controls .seg{overflow-x:auto;max-width:100%}
+    .seg button{padding:6px 9px;white-space:nowrap}
+    input[type=text]{width:100%;font-size:16px}  /* 16px stops iOS zoom-on-focus */
+    .legend{display:none}
+    .wrap{padding:0 4px 60px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    #tableWrap table{min-width:720px}
+    thead th{position:static}
+    .grouphdr td{position:static}
+    .hm{padding:6px 10px 40px}
+    .tile{width:62px;height:44px;font-size:10px}
+    .tile b{font-size:11px}
+    .cy,.fs,.cs{padding:10px 10px 50px}
+    .cygrid{grid-template-columns:1fr}
+    .csgrid{grid-template-columns:1fr}
+    .fsgrid{grid-template-columns:1fr}
+    .fs table{min-width:640px}
+    .csb div{font-size:12px}
+    .csnote{font-size:11.5px}
+  }
 </style>
 </head>
 <body>
@@ -379,7 +406,7 @@ function renderFS(){
   if(!FS){w.innerHTML=`<div class="fscard">No factset.json yet — pulled on demand from the FactSet MCP connector (ask Claude to refresh it).</div>`;return;}
   const rows=Object.entries(FS.geo).sort((a,b)=>b[1].cn-a[1].cn);
   let html=`<h2 style="font-size:13px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin:4px 0 8px">China / Asia revenue exposure — FactSet GeoRev</h2>`;
-  html+=`<table style="max-width:880px"><thead><tr><th class="l" style="position:static">Ticker</th>`+
+  html+=`<div class="scrollx"><table style="max-width:880px"><thead><tr><th class="l" style="position:static">Ticker</th>`+
         `<th style="position:static">China</th><th style="position:static">Taiwan</th><th style="position:static">Korea</th>`+
         `<th style="position:static">Japan</th><th style="position:static">US</th><th style="position:static">Fiscal</th></tr></thead><tbody>`;
   rows.forEach(([t,g])=>{
@@ -388,7 +415,7 @@ function renderFS(){
       `<td class="l">${fsBar(g.kr,"#58a6ff")}</td><td class="l">${fsBar(g.jp,"#8ad1ff")}</td>`+
       `<td class="l">${fsBar(g.us,"#3fb950")}</td><td class="l" style="color:var(--head);font-size:11px">${g.fy}</td></tr>`;
   });
-  html+=`</tbody></table>`;
+  html+=`</tbody></table></div>`;
   html+=`<div class="cysrc" style="margin:8px 0 0;max-width:880px">${FS.note} Geo model assigns revenue to the customer's country — US-heavy prints at TSM/NVDA reflect billing to US-headquartered customers. Certainty ${"E"} rows (ADI, MPWR) are model-estimated.</div>`;
   html+=`<h2 style="font-size:13px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin:24px 0 2px">Supply chain — as disclosed in filings</h2>`;
   html+=`<div class="cysrc" style="margin:0 0 4px">FactSet Supply Chain (DIRECT relationships: counterparties the company itself names). Order per FactSet, not revenue-ranked.</div>`;
