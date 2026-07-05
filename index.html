@@ -41,6 +41,9 @@
   .tk{font-weight:700;color:#e6edf6}
   .nm{color:var(--dim);max-width:190px;overflow:hidden;text-overflow:ellipsis}
   .sec{color:var(--head);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .note{max-width:250px;white-space:normal!important;font-size:11px;line-height:1.35}
+  .note a{color:var(--dim);border-bottom:1px dotted #33415c}
+  .note a:hover{color:var(--accent);border-bottom-color:var(--accent)}
   .fx{display:inline-block;margin-left:5px;font-size:9px;color:var(--amber);border:1px solid #3a3015;background:#1d1808;border-radius:3px;padding:0 4px;vertical-align:middle}
   .grouphdr td{background:#0a0f18;color:var(--accent);font-weight:700;font-size:12px;text-transform:uppercase;text-align:left;
     letter-spacing:.5px;padding:8px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);cursor:pointer}
@@ -123,7 +126,7 @@
     input[type=text]{width:100%;font-size:16px}  /* 16px stops iOS zoom-on-focus */
     .legend{display:none}
     .wrap{padding:0 4px 60px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-    #tableWrap table{min-width:820px}
+    #tableWrap table{min-width:1060px}
     thead th{position:static}
     .grouphdr td{position:static}
     .hm{padding:6px 10px 40px}
@@ -188,19 +191,20 @@ const COLS = [
   {k:"ret5y", label:"5Y",    grp:""},
   {k:"val",   label:"Val",   grp:"VALUATION"},
 ];
-let CFG=null, MKT=null, CYC=null, FS=null, CS=null, state={view:"table", group:"sector", sort:"ret1d", dir:-1, filter:""};
+let CFG=null, MKT=null, CYC=null, FS=null, CS=null, NOTES=null, state={view:"table", group:"sector", sort:"ret1d", dir:-1, filter:""};
 const collapsed = new Set();
 
 async function load(){
   try{
-    const [c,m,cy,fs,cs] = await Promise.all([
+    const [c,m,cy,fs,cs,nt] = await Promise.all([
       fetch("sectors.json").then(r=>r.json()),
       fetch("market.json").then(r=>r.json()).catch(()=>({stocks:{}})),
       fetch("cycle.json").then(r=>r.json()).catch(()=>null),
       fetch("factset.json").then(r=>r.json()).catch(()=>null),
-      fetch("casestudies.json").then(r=>r.json()).catch(()=>null)
+      fetch("casestudies.json").then(r=>r.json()).catch(()=>null),
+      fetch("notes.json").then(r=>r.json()).catch(()=>null)
     ]);
-    CFG=c; MKT=m; CYC=cy; FS=fs; CS=cs;
+    CFG=c; MKT=m; CYC=cy; FS=fs; CS=cs; NOTES=nt;
     const n = countTickers();
     const upd = m.updated ? new Date(m.updated).toLocaleString() : "no data yet";
     document.getElementById("sub").innerHTML =
@@ -250,16 +254,23 @@ function fmtLast(d){
   return `<span class="last">${d.last.toLocaleString(undefined,{maximumFractionDigits:2})}</span>`;
 }
 function fmtVal(d){ return d.val==null?'<span class="na">—</span>':`<span class="val">${d.val} ${d.valLabel||""}</span>`; }
+function fmtNote(t){
+  const n=NOTES&&NOTES.stocks&&NOTES.stocks[t];
+  if(!n) return '<span class="na">—</span>';
+  return n.url?`<a href="${n.url}" target="_blank" rel="noopener" title="Open source article">${n.note} ↗</a>`:n.note;
+}
 
 // ---- table render ----
 function renderHead(){
   const h=document.getElementById("head");
   let html=`<th class="l">Ticker</th><th class="l">Company</th><th class="l">Sub-sector</th>`;
+  const noteHdr=`<th class="l" style="cursor:default">1M Note${NOTES&&NOTES.updated?`<br><span style="font-weight:400;text-transform:none;letter-spacing:0">as of ${NOTES.updated}</span>`:""}</th>`;
   COLS.forEach(c=>{
     const on=state.sort===c.k?"sortcol":"";
     const arrow=state.sort===c.k?(state.dir<0?" ▼":" ▲"):"";
     html+=`<th class="${on}" data-k="${c.k}">${c.grp?`<span class="grp">${c.grp}</span><br>`:""}${c.label}${arrow}</th>`;
   });
+  html+=noteHdr;
   h.innerHTML=html;
   h.querySelectorAll("th[data-k]").forEach(th=>th.onclick=()=>{
     const k=th.dataset.k;
@@ -275,7 +286,7 @@ function renderTable(){
     const rows=rowsFor(g.tickers);
     if(!rows.length) return;
     const isC=collapsed.has(g.name);
-    html+=`<tr class="grouphdr" data-g="${g.name}"><td colspan="${COLS.length+3}">${isC?"▶":"▼"} ${g.name} <span class="cnt">(${rows.length})</span></td></tr>`;
+    html+=`<tr class="grouphdr" data-g="${g.name}"><td colspan="${COLS.length+4}">${isC?"▶":"▼"} ${g.name} <span class="cnt">(${rows.length})</span></td></tr>`;
     if(isC) return;
     rows.forEach(r=>{
       html+=`<tr><td class="l"><span class="tk">${r.t.split(".")[0]}</span>${r.fx?`<span class="fx" title="${r.fx} · ${r.d.cur||""}">FX</span>`:""}</td>`+
@@ -283,10 +294,11 @@ function renderTable(){
             `<td class="l sec" title="${secOf(r.t)}">${secOf(r.t)}</td>`+
             `<td>${fmtLast(r.d)}</td>`+
             COLS.slice(1,7).map(c=>`<td>${fmtPct(r.d[c.k])}</td>`).join("")+
-            `<td>${fmtVal(r.d)}</td></tr>`;
+            `<td>${fmtVal(r.d)}</td>`+
+            `<td class="l note">${fmtNote(r.t)}</td></tr>`;
     });
   });
-  body.innerHTML=html||`<tr><td colspan="${COLS.length+3}" style="padding:20px;color:var(--head)">No matches.</td></tr>`;
+  body.innerHTML=html||`<tr><td colspan="${COLS.length+4}" style="padding:20px;color:var(--head)">No matches.</td></tr>`;
   body.querySelectorAll(".grouphdr").forEach(tr=>tr.onclick=()=>{
     const g=tr.dataset.g; collapsed.has(g)?collapsed.delete(g):collapsed.add(g); render();
   });
