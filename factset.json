@@ -1,0 +1,613 @@
+{
+ "updated": "2026-07-05T17:45:19+00:00",
+ "source": "FactSet GeoRev + Supply Chain (as-disclosed, DIRECT) via FactSet AI-Ready Data MCP",
+ "note": "Geo = % of latest-FY revenue by customer country (FactSet GeoRev model; cert = A best..E). Relationships = counterparties named in the company's own filings; order per FactSet, not revenue-ranked.",
+ "geo": {
+  "NVDA": {
+   "cn": 8.9,
+   "tw": 19.6,
+   "kr": 0.1,
+   "jp": 0.1,
+   "us": 69.3,
+   "fy": "FY26 (Jan-26)",
+   "cert": "B"
+  },
+  "AVGO": {
+   "cn": 17.0,
+   "tw": 1.0,
+   "kr": 2.3,
+   "jp": 5.3,
+   "us": 25.8,
+   "fy": "FY25 (Oct-25)",
+   "cert": "B"
+  },
+  "AMD": {
+   "cn": 21.8,
+   "tw": 15.0,
+   "kr": 0.5,
+   "jp": 1.2,
+   "us": 32.8,
+   "fy": "FY25 (Dec-25)",
+   "cert": "B"
+  },
+  "TSM": {
+   "cn": 8.6,
+   "tw": 7.9,
+   "kr": 0.1,
+   "jp": 3.9,
+   "us": 74.4,
+   "fy": "FY25 (Dec-25)",
+   "cert": "A"
+  },
+  "QCOM": {
+   "cn": 44.8,
+   "tw": 0.1,
+   "kr": 21.5,
+   "jp": 0.6,
+   "us": 23.7,
+   "fy": "FY25 (Sep-25)",
+   "cert": "B"
+  },
+  "TXN": {
+   "cn": 20.9,
+   "tw": 0.6,
+   "kr": 1.4,
+   "jp": 6.6,
+   "us": 38.2,
+   "fy": "FY25 (Dec-25)",
+   "cert": "C"
+  },
+  "ADI": {
+   "cn": 25.3,
+   "tw": 3.0,
+   "kr": 6.7,
+   "jp": 9.0,
+   "us": 29.4,
+   "fy": "FY25 (Oct-25)",
+   "cert": "E"
+  },
+  "INTC": {
+   "cn": 23.4,
+   "tw": 14.5,
+   "kr": 0.4,
+   "jp": 0.9,
+   "us": 29.8,
+   "fy": "FY25 (Dec-25)",
+   "cert": "B"
+  },
+  "MU": {
+   "cn": 7.1,
+   "tw": 15.2,
+   "kr": 0.7,
+   "jp": 2.4,
+   "us": 64.5,
+   "fy": "FY25 (Aug-25)",
+   "cert": "A"
+  },
+  "AMAT": {
+   "cn": 29.3,
+   "tw": 24.2,
+   "kr": 19.8,
+   "jp": 8.0,
+   "us": 10.8,
+   "fy": "FY25 (Oct-25)",
+   "cert": "B"
+  },
+  "LRCX": {
+   "cn": 32.9,
+   "tw": 18.7,
+   "kr": 22.4,
+   "jp": 10.2,
+   "us": 7.5,
+   "fy": "FY25 (Jun-25)",
+   "cert": "B"
+  },
+  "KLAC": {
+   "cn": 32.4,
+   "tw": 26.4,
+   "kr": 12.0,
+   "jp": 9.3,
+   "us": 11.2,
+   "fy": "FY25 (Jun-25)",
+   "cert": "B"
+  },
+  "MRVL": {
+   "cn": 35.4,
+   "tw": 20.2,
+   "kr": 0.8,
+   "jp": 1.9,
+   "us": 14.3,
+   "fy": "FY26 (Jan-26)",
+   "cert": "B"
+  },
+  "NXPI": {
+   "cn": 16.2,
+   "tw": 7.1,
+   "kr": 7.2,
+   "jp": 8.6,
+   "us": 26.3,
+   "fy": "FY25 (Dec-25)",
+   "cert": "B"
+  },
+  "MCHP": {
+   "cn": 17.6,
+   "tw": 15.0,
+   "kr": 1.8,
+   "jp": 4.2,
+   "us": 25.0,
+   "fy": "FY26 (Mar-26)",
+   "cert": "B"
+  },
+  "ON": {
+   "cn": 2.2,
+   "tw": 0.1,
+   "kr": 0.2,
+   "jp": 0.5,
+   "us": 20.5,
+   "fy": "FY25 (Dec-25)",
+   "cert": "D"
+  },
+  "MPWR": {
+   "cn": 54.0,
+   "tw": 19.7,
+   "kr": 9.1,
+   "jp": 3.0,
+   "us": 3.5,
+   "fy": "FY25 (Dec-25)",
+   "cert": "E"
+  },
+  "TER": {
+   "cn": 13.8,
+   "tw": 36.2,
+   "kr": 14.0,
+   "jp": 2.1,
+   "us": 11.3,
+   "fy": "FY25 (Dec-25)",
+   "cert": "B"
+  }
+ },
+ "relationships": {
+  "NVDA": {
+   "customers": [
+    "Oracle Corporation",
+    "Siemens Aktiengesellschaft",
+    "Synopsys, Inc.",
+    "Alphabet Inc. Class A",
+    "SAP SE",
+    "Microsoft Corporation",
+    "Hexagon AB Class B",
+    "General Motors Company",
+    "Hon Hai Precision Industry Co., Ltd.",
+    "Cadence Design Systems, Inc.",
+    "Rockwell Automation, Inc.",
+    "Amazon.com, Inc."
+   ],
+   "suppliers": [
+    "Samsung Electronics",
+    "Fabrinet",
+    "Hon Hai Precision",
+    "Wistron",
+    "Micron",
+    "SK hynix",
+    "TSMC"
+   ],
+   "competitors": [
+    "Intel",
+    "Broadcom",
+    "Cisco",
+    "AMD",
+    "HPE",
+    "Renesas",
+    "Arista",
+    "Samsung",
+    "Alphabet",
+    "Qualcomm",
+    "Ambarella",
+    "Lumentum"
+   ]
+  },
+  "AVGO": {
+   "customers": [
+    "International Business Machines Corporation",
+    "Oracle Corporation",
+    "Cisco Systems, Inc.",
+    "NEC Corporation",
+    "Hewlett Packard Enterprise Co.",
+    "Hitachi, Ltd.",
+    "Fujitsu Limited",
+    "Dell Technologies, Inc. Class C",
+    "HCL Technologies Limited",
+    "Tata Consultancy Services Limited",
+    "Infosys Limited",
+    "Atos Group"
+   ],
+   "suppliers": [
+    "Oracle",
+    "Microsoft",
+    "Alphabet",
+    "Hon Hai Precision",
+    "Amazon",
+    "Amkor",
+    "ASE Technology",
+    "TSMC"
+   ],
+   "competitors": []
+  },
+  "AMD": {
+   "customers": [
+    "NVIDIA Corporation",
+    "Asustek Computer Inc.",
+    "Tul Corporation",
+    "Synopsys, Inc.",
+    "Autodesk, Inc.",
+    "Lattice Semiconductor Corporation",
+    "International Business Machines Corporation",
+    "NEC Corporation",
+    "Siemens Aktiengesellschaft",
+    "Kioxia Holdings Corporation",
+    "Gigabyte Technology Co., Ltd.",
+    "Marvell Technology, Inc."
+   ],
+   "suppliers": [
+    "Samsung Electronics",
+    "GlobalFoundries",
+    "TSMC",
+    "UMC"
+   ],
+   "competitors": [
+    "Intel",
+    "NVIDIA",
+    "Lattice",
+    "Texas Instruments",
+    "Marvell",
+    "Broadcom",
+    "Microchip",
+    "NXP",
+    "ADI",
+    "Qualcomm"
+   ]
+  },
+  "TSM": {
+   "customers": [
+    "Global Unichip Corp.",
+    "Intel Corporation",
+    "QUALCOMM Incorporated",
+    "NXP Semiconductors NV",
+    "Sony Group Corporation",
+    "Advanced Micro Devices, Inc.",
+    "Amazon.com, Inc.",
+    "Broadcom Inc.",
+    "MediaTek Inc",
+    "NVIDIA Corporation",
+    "Renesas Electronics Corporation"
+   ],
+   "suppliers": [
+    "Vanguard Intl Semi",
+    "Synopsys",
+    "Cadence",
+    "Siemens",
+    "Alphabet",
+    "Amazon",
+    "ASM International",
+    "Microsoft"
+   ],
+   "competitors": []
+  },
+  "QCOM": {
+   "customers": [
+    "Samsung Electronics Co., Ltd.",
+    "Apple Inc.",
+    "Xiaomi Corporation Class B",
+    "International Business Machines Corporation",
+    "SECO S.p.A.",
+    "MACNICA HOLDINGS INC.",
+    "Avnet, Inc.",
+    "Arrow Electronics, Inc.",
+    "Zebra Technologies Corporation Class A",
+    "Advantech Co., Ltd.",
+    "Alphabet Inc. Class A",
+    "NTT Inc"
+   ],
+   "suppliers": [
+    "Samsung Electronics",
+    "GlobalFoundries",
+    "Amkor",
+    "ASE Technology",
+    "TSMC",
+    "JCET Group"
+   ],
+   "competitors": [
+    "Texas Instruments",
+    "Broadcom",
+    "MediaTek",
+    "NXP",
+    "Qorvo",
+    "NVIDIA",
+    "Samsung",
+    "Mobileye",
+    "Skyworks",
+    "Apple"
+   ]
+  },
+  "TXN": {
+   "customers": [
+    "NVIDIA Corporation",
+    "Arrow Electronics, Inc.",
+    "Apple Inc.",
+    "Berkshire Hathaway Inc. Class B",
+    "Ford Motor Company",
+    "MACNICA HOLDINGS INC.",
+    "Medtronic Plc",
+    "Space Exploration Technologies Corp. Class A",
+    "Tokyo Electron Device Limited",
+    "Volkswagen AG Pref"
+   ],
+   "suppliers": [],
+   "competitors": []
+  },
+  "ADI": {
+   "customers": [
+    "Berkshire Hathaway Inc. Class B",
+    "Arrow Electronics, Inc.",
+    "Avnet, Inc.",
+    "Daitron Co., Ltd.",
+    "MACNICA HOLDINGS INC.",
+    "Marubun Corporation",
+    "Shenzhen CECport Technologies Co., Ltd. Class A",
+    "Toyota Tsusho Corp."
+   ],
+   "suppliers": [
+    "TSMC"
+   ],
+   "competitors": []
+  },
+  "INTC": {
+   "customers": [
+    "Broadcom Inc.",
+    "International Business Machines Corporation",
+    "Acer Incorporated",
+    "Mustek Limited",
+    "Alphabet Inc. Class A",
+    "Berkshire Hathaway Inc. Class B",
+    "Digital China Group Co., Ltd Class A",
+    "AB S.A.",
+    "TOTVS S.A.",
+    "Okaya & Co., Ltd.",
+    "Agora, Inc. Sponsored ADR Class A",
+    "Alibaba Group Holding Limited"
+   ],
+   "suppliers": [
+    "Fujitsu",
+    "Keysight",
+    "Samsung Electronics",
+    "Lam Research",
+    "TSMC",
+    "KLA",
+    "HCL Tech",
+    "AMAT",
+    "ASML",
+    "Disco",
+    "Tokyo Electron",
+    "Ultra Clean",
+    "Siltronic",
+    "UMC*"
+   ],
+   "competitors": [
+    "Broadcom",
+    "NVIDIA",
+    "AMD",
+    "Samsung",
+    "Microsoft",
+    "Qualcomm",
+    "Alphabet",
+    "UMC",
+    "SMIC",
+    "TSMC",
+    "Apple",
+    "GlobalFoundries"
+   ]
+  },
+  "MU": {
+   "customers": [
+    "Unitrontech Co., Ltd.",
+    "Toyota Tsusho Corp.",
+    "AFASTOR Corporation",
+    "AB S.A.",
+    "Albatron Technology Co., Ltd",
+    "Arrow Electronics, Inc.",
+    "ASBISc Enterprises Plc",
+    "Avnet, Inc.",
+    "Berkshire Hathaway Inc. Class B",
+    "Bridgford Foods Corporation",
+    "Dicker Data Limited",
+    "Eternal Asia Supply Chain Management Ltd. Class A"
+   ],
+   "suppliers": [],
+   "competitors": [
+    "Samsung",
+    "Sandisk",
+    "SK hynix",
+    "Kioxia"
+   ]
+  },
+  "AMAT": {
+   "customers": [
+    "Samsung Electronics Co., Ltd.",
+    "Taiwan Semiconductor Manufacturing Co., Ltd.",
+    "Intel Corporation"
+   ],
+   "suppliers": [
+    "Foxsemicon",
+    "Union Semi Equipment",
+    "Ichor",
+    "Moog",
+    "Daihen",
+    "SMC",
+    "TOCALO"
+   ],
+   "competitors": []
+  },
+  "LRCX": {
+   "customers": [
+    "Samsung Electronics Co., Ltd.",
+    "Micron Technology, Inc.",
+    "Taiwan Semiconductor Manufacturing Co., Ltd."
+   ],
+   "suppliers": [
+    "Amphenol",
+    "BizLink",
+    "Celestica",
+    "INFICON",
+    "Tokai Carbon Korea",
+    "TOTO",
+    "Venture Corp"
+   ],
+   "competitors": [
+    "SCREEN Holdings",
+    "Applied Materials",
+    "Tokyo Electron",
+    "Wonik IPS",
+    "Samsung",
+    "Hitachi",
+    "ASM International"
+   ]
+  },
+  "KLAC": {
+   "customers": [
+    "Taiwan Semiconductor Manufacturing Co., Ltd."
+   ],
+   "suppliers": [],
+   "competitors": [
+    "Onto Innovation",
+    "Applied Materials",
+    "Lasertec",
+    "Hitachi",
+    "ASML"
+   ]
+  },
+  "MRVL": {
+   "customers": [
+    "Avnet, Inc.",
+    "Berkshire Hathaway Inc. Class B",
+    "Edom Technology Co., Ltd.",
+    "Hakuto Co., Ltd.",
+    "MACNICA HOLDINGS INC.",
+    "Uniquest Corporation",
+    "WT Microelectronics Co., Ltd."
+   ],
+   "suppliers": [],
+   "competitors": [
+    "Microchip",
+    "Broadcom",
+    "Intel",
+    "NVIDIA",
+    "Realtek",
+    "Cisco",
+    "Qualcomm",
+    "NXP",
+    "Rambus",
+    "MediaTek",
+    "Astera Labs",
+    "Credo"
+   ]
+  },
+  "NXPI": {
+   "customers": [
+    "Avnet, Inc.",
+    "LG Electronics Inc.",
+    "DENSO CORPORATION",
+    "Visteon Corporation",
+    "Aptiv PLC",
+    "Aumovio SE",
+    "Arrow Electronics, Inc.",
+    "Honeywell Technologies Inc.",
+    "Apple Inc.",
+    "Hyundai Motor Company",
+    "Samsung Electronics Co., Ltd.",
+    "Toyota Tsusho Corp."
+   ],
+   "suppliers": [],
+   "competitors": [
+    "Renesas",
+    "STMicro",
+    "Texas Instruments",
+    "ADI",
+    "Microchip",
+    "Infineon",
+    "Broadcom",
+    "Qualcomm"
+   ]
+  },
+  "MCHP": {
+   "customers": [
+    "Unitrontech Co., Ltd.",
+    "Delta Electronics, Inc.",
+    "Microsoft Corporation",
+    "STG International Ltd",
+    "Amazon.com, Inc.",
+    "Arrow Electronics, Inc.",
+    "Asec International Corporation",
+    "Avnet, Inc.",
+    "Berkshire Hathaway Inc. Class B",
+    "Bridgford Foods Corporation",
+    "Cyberlink Corp.",
+    "Holy Stone Enterprise Co., Ltd."
+   ],
+   "suppliers": [
+    "Alphabet",
+    "Apple"
+   ],
+   "competitors": []
+  },
+  "ON": {
+   "customers": [],
+   "suppliers": [],
+   "competitors": [
+    "STMicro",
+    "Texas Instruments",
+    "Renesas",
+    "ADI",
+    "Infineon",
+    "ROHM",
+    "NXP",
+    "Monolithic Power",
+    "Wingtech",
+    "Wolfspeed"
+   ]
+  },
+  "MPWR": {
+   "customers": [],
+   "suppliers": [],
+   "competitors": [
+    "ROHM",
+    "Texas Instruments",
+    "ADI",
+    "ON Semi",
+    "STMicro",
+    "Infineon",
+    "NXP",
+    "Renesas",
+    "Power Integrations",
+    "Semtech"
+   ]
+  },
+  "TER": {
+   "customers": [
+    "Taiwan Semiconductor Manufacturing Co., Ltd."
+   ],
+   "suppliers": [
+    "Flex",
+    "Plexus",
+    "SAM Engineering"
+   ],
+   "competitors": [
+    "Keysight",
+    "Advantest",
+    "Anritsu",
+    "Cohu",
+    "OMRON",
+    "ABB"
+   ]
+  }
+ }
+}
