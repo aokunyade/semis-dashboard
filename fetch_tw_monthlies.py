@@ -98,8 +98,24 @@ def pct(a, b):
 
 
 def main():
-    months = month_list(MONTHS_BACK)
-    series = {c: {} for c in NAMES}          # code -> {"YYYY-MM": rev}
+    # incremental mode: if we already have good history, only refresh the
+    # last 3 months (12 requests) instead of the full 60-month backfill --
+    # keeps us well under MOPS rate limits on daily runs.
+    existing = {}
+    out_path = ROOT / "monthlies.json"
+    if out_path.exists():
+        try:
+            prev = json.loads(out_path.read_text())
+            if len(prev.get("names", {})) >= 10:
+                for c, x in prev["names"].items():
+                    existing[c] = {k: v * 1000 for k, v in x["series"]}  # back to NT$k
+        except Exception:
+            pass
+    incremental = bool(existing)
+    months = month_list(3 if incremental else MONTHS_BACK)
+    print(f"mode: {'incremental (3mo)' if incremental else 'full backfill (60mo)'}")
+
+    series = {c: dict(existing.get(c, {})) for c in NAMES}   # code -> {"YYYY-MM": rev}
     for (y, m) in months:
         got = {}
         for board in ("sii", "otc"):
@@ -108,7 +124,7 @@ def main():
         for c, v in got.items():
             series[c][key] = v
         print(f"{key}: {len(got)}/{len(NAMES)} names")
-        time.sleep(0.4)                       # be polite to MOPS
+        time.sleep(1.0)                       # be polite to MOPS
 
     names_out = {}
     for c, (nm, grp) in NAMES.items():
@@ -158,6 +174,12 @@ def main():
                 cur = sum(agg[k][c] for c in cur_names)
                 old = sum(agg[prior][c] for c in cur_names)
                 comp.append([k, pct(cur, old), len(cur_names)])
+
+    # guard: never overwrite good data with an empty/failed scrape
+    if len(names_out) < 10:
+        print(f"ABORT: only {len(names_out)} names scraped (MOPS blocked/throttled?) "
+              f"-- keeping existing monthlies.json untouched")
+        return
 
     payload = {
         "updated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
