@@ -6,7 +6,8 @@ pages for both TWSE (sii) and TPEx (otc) boards, extracts the names below,
 and computes MoM %, YoY %, and 3-month-average YoY.
 
 Run from repo root: python fetch_tw_monthlies.py  ->  writes monthlies.json
-Source: https://mops.twse.com.tw/nas/t21/{sii|otc}/t21sc03_{rocYear}_{month}_0.html
+Source: https://mopsov.twse.com.tw/nas/t21/{sii|otc}/t21sc03_{rocYear}_{month}_0.html
+(legacy MOPS server -- the main mops.twse.com.tw dropped the /nas/t21 static files)
 """
 import json
 import time
@@ -62,7 +63,7 @@ def month_list(n):
 def fetch_month(year, month, board):
     """Return {code: revenue_thousands_twd} for one month/board."""
     roc = year - 1911
-    url = f"https://mops.twse.com.tw/nas/t21/{board}/t21sc03_{roc}_{month}_0.html"
+    url = f"https://mopsov.twse.com.tw/nas/t21/{board}/t21sc03_{roc}_{month}_0.html"
     try:
         r = requests.get(url, headers=UA, timeout=30)
         if r.status_code != 200:
