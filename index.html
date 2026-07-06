@@ -475,26 +475,37 @@ function renderTW(){
   }
   const groups={};
   Object.entries(TW.names||{}).forEach(([code,x])=>{groups[x.group]=groups[x.group]||[];groups[x.group].push([code,x]);});
-  html+=`<div class="scrollx"><table style="max-width:1100px"><thead><tr>`+
-    `<th class="l" style="position:static">Company</th><th style="position:static">Month</th><th style="position:static">Rev NT$bn</th>`+
+  html+=`<div class="scrollx"><table style="max-width:1360px"><thead><tr>`+
+    `<th class="l" style="position:static">Company</th><th style="position:static">Month</th>`+
+    `<th style="position:static" title="Taiwan monthly revenue is due by the ~10th of the following month">Next rpt</th>`+
+    `<th style="position:static">Rev NT$bn</th>`+
     `<th style="position:static">MoM</th><th style="position:static">YoY</th><th style="position:static">3M YoY</th>`+
+    `<th style="position:static" title="YoY for the latest calendar quarter. 3/3 months = actual; fewer = missing months filled with that name's typical monthly seasonality; 0 = whole quarter implied from prior quarter x median QoQ seasonality">Impl Q YoY</th>`+
+    `<th style="position:static" title="Median QoQ move from Q1 into Q2 across the last 5 years">Q2 seas. QoQ</th>`+
     `<th class="l" style="position:static">Last 12M YoY</th><th class="l" style="position:static">5y revenue</th></tr></thead><tbody>`;
   const order=["Foundry","AI Server ODM","Chassis / Rails","Power / Cooling","Networking / Components"];
   order.forEach(g=>{
     if(!groups[g]) return;
-    html+=`<tr class="grouphdr"><td colspan="8">${g}</td></tr>`;
+    html+=`<tr class="grouphdr"><td colspan="11">${g}</td></tr>`;
     groups[g].sort((a,b)=>(b[1].latest.yoy??-999)-(a[1].latest.yoy??-999)).forEach(([code,x])=>{
-      const L=x.latest;
+      const L=x.latest, iq=x.impliedQ;
+      const iqCell=iq&&iq.yoy!=null?
+        `${fmtPct(iq.yoy)} <span class="cert" title="${iq.q}: ${iq.monthsIn}/3 months reported (${iq.method})">${iq.monthsIn}/3${iq.method==="seasonal"?" S":iq.method==="partial"?" E":""}</span>`:
+        '<span class="na">—</span>';
       html+=`<tr><td class="l"><span class="tk">${x.n}</span> <span style="color:var(--head);font-size:10px">${code}</span></td>`+
         `<td style="color:var(--dim)">${L.ym}</td>`+
+        `<td style="color:var(--head);font-size:11px">${x.nextRelease?x.nextRelease.slice(5).replace("-","/"):"—"}</td>`+
         `<td>${L.revM!=null?(L.revM/1000).toFixed(1):"—"}</td>`+
         `<td>${fmtPct(L.mom)}</td><td>${fmtPct(L.yoy)}</td><td>${fmtPct(L.t3mYoy)}</td>`+
+        `<td>${iqCell}</td>`+
+        `<td>${x.q2Season!=null?fmtPct(x.q2Season):'<span class="na">—</span>'}</td>`+
         `<td class="l">${twHeatStrip(x.yoy)}</td>`+
         `<td class="l">${spark(x.series,"#8ad1ff")||""}</td></tr>`;
     });
   });
   html+=`</tbody></table></div>`;
-  html+=`<div class="cysrc" style="margin-top:10px;max-width:1100px">Company-level TOTAL revenue (Hon Hai includes iPhones, Quanta includes notebooks) — read the ACCELERATION, not the level. Purest AI-server reads: Wiwynn, Chenbro, King Slide, AVC, Auras. Updated ${TW.updated?new Date(TW.updated).toLocaleDateString():""} · ${TW.source||""}</div>`;
+  html+=`<div class="cysrc" style="margin-top:10px;max-width:1360px">Company-level TOTAL revenue (Hon Hai includes iPhones, Quanta includes notebooks) — read the ACCELERATION, not the level. Purest AI-server reads: Wiwynn, Chenbro, King Slide, AVC, Auras. `+
+    `Impl Q YoY: n/3 = months reported; E = missing months estimated from that name's typical monthly seasonality; S = full quarter implied from prior quarter × median QoQ seasonality (last 5 years). Q2 seas. = median Q1→Q2 QoQ move, last 5 years. Next rpt = ~10th-of-month TWSE deadline. Updated ${TW.updated?new Date(TW.updated).toLocaleDateString():""} · ${TW.source||""}</div>`;
   w.innerHTML=html;
 }
 

@@ -97,6 +97,104 @@ def pct(a, b):
     return None
 
 
+def median(xs):
+    xs = sorted(xs)
+    n = len(xs)
+    if not n:
+        return None
+    return xs[n // 2] if n % 2 else (xs[n // 2 - 1] + xs[n // 2]) / 2
+
+
+def ym_add(ym, k):
+    y, m = int(ym[:4]), int(ym[5:7])
+    m += k
+    while m > 12: y, m = y + 1, m - 12
+    while m < 1:  y, m = y - 1, m + 12
+    return f"{y}-{m:02d}"
+
+
+def q_of(ym):
+    return (int(ym[5:7]) - 1) // 3 + 1
+
+
+def q_months(year, q):
+    return [f"{year}-{m:02d}" for m in range(3 * q - 2, 3 * q + 1)]
+
+
+def q_seasonality(vals, q):
+    """Median QoQ move into quarter q (vs quarter q-1), across all years in data."""
+    ratios = []
+    years = sorted({int(k[:4]) for k in vals})
+    for y in years:
+        cur = q_months(y, q)
+        py, pq = (y - 1, 4) if q == 1 else (y, q - 1)
+        prv = q_months(py, pq)
+        if all(m in vals for m in cur) and all(m in vals for m in prv):
+            a, b = sum(vals[m] for m in cur), sum(vals[m] for m in prv)
+            if b:
+                ratios.append(a / b)
+    r = median(ratios)
+    return round((r - 1) * 100, 1) if r else None
+
+
+def month_seasonal_ratio(vals, month_num):
+    """Median ratio of month m to month m-1 across years (for filling gaps)."""
+    ratios = []
+    for k in vals:
+        if int(k[5:7]) == month_num:
+            prev = ym_add(k, -1)
+            if prev in vals and vals[prev]:
+                ratios.append(vals[k] / vals[prev])
+    return median(ratios)
+
+
+def implied_quarter(vals, latest):
+    """Implied YoY growth for the most recent quarter containing `latest`.
+    3 months reported -> actual. 1-2 -> fill gaps with monthly seasonality.
+    0 -> whole quarter from prior quarter x median QoQ seasonality."""
+    y, q = int(latest[:4]), q_of(latest)
+    months = q_months(y, q)
+    have = [m for m in months if m in vals]
+    est, method = {}, "actual"
+    for m in months:
+        if m in vals:
+            est[m] = vals[m]
+    if len(have) == 0:
+        py, pq = (y - 1, 4) if q == 1 else (y, q - 1)
+        prv = q_months(py, pq)
+        if not all(m in vals for m in prv):
+            return None
+        r = q_seasonality(vals, q)
+        if r is None:
+            return None
+        total = sum(vals[m] for m in prv) * (1 + r / 100)
+        method = "seasonal"
+    else:
+        if len(have) < 3:
+            method = "partial"
+            for m in months:
+                if m not in est:
+                    prev = ym_add(m, -1)
+                    base = est.get(prev) or vals.get(prev)
+                    ratio = month_seasonal_ratio(vals, int(m[5:7]))
+                    if base is None or ratio is None:
+                        return None
+                    est[m] = base * ratio
+        total = sum(est[m] for m in months)
+    prior_yr = [ym_add(m, -12) for m in months]
+    if not all(m in vals for m in prior_yr):
+        return None
+    yoy = pct(total, sum(vals[m] for m in prior_yr))
+    return {"q": f"Q{q}-{str(y)[2:]}", "yoy": yoy, "monthsIn": len(have), "method": method}
+
+
+def next_release(latest):
+    """Taiwan monthly revenue is due by the ~10th of the following month.
+    Next unreported month = latest+1, released by 10th of latest+2."""
+    rel = ym_add(latest, 2)
+    return f"{rel}-10"
+
+
 def main():
     # incremental mode: if we already have good history, only refresh the
     # last 3 months (12 requests) instead of the full 60-month backfill --
@@ -156,6 +254,9 @@ def main():
                        "mom": mom,
                        "yoy": yoy[-1][1] if yoy else None,
                        "t3mYoy": t3},
+            "nextRelease": next_release(keys[-1]),
+            "impliedQ": implied_quarter(vals, keys[-1]),
+            "q2Season": q_seasonality(vals, 2),
         }
 
     # composite: aggregate AI Server ODM revenue YoY by month
