@@ -38,9 +38,9 @@ jobs:
       - name: Fetch neocloud deals
         run: python fetch_deals.py
 
-      - name: Fetch case study data (first run, then weekly on Mondays)
+      - name: Fetch case study data (one-time -- historical, only if missing)
         run: |
-          if [ ! -f casestudies.json ] || [ "$(date +%u)" = "1" ]; then
+          if [ ! -f casestudies.json ]; then
             python fetch_casestudies.py
           fi
 
