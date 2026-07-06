@@ -44,11 +44,19 @@ jobs:
             python fetch_casestudies.py
           fi
 
+      - name: Fetch TW monthly revenue (first run, then days 1-15)
+        run: |
+          if [ ! -f monthlies.json ] || [ "$(date +%-d)" -le 15 ]; then
+            python fetch_tw_monthlies.py || echo "MOPS fetch failed; keeping previous monthlies.json"
+          fi
+
       - name: Commit refreshed data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add market.json cycle.json deals.json casestudies.json factset.json
+          for f in market.json cycle.json deals.json casestudies.json factset.json monthlies.json; do
+            [ -f "$f" ] && git add "$f"
+          done
           git diff --cached --quiet || git commit -m "chore: daily data refresh [skip ci]"
           git push
 
