@@ -42,6 +42,8 @@
   .nm{color:var(--dim);max-width:190px;overflow:hidden;text-overflow:ellipsis}
   .sec{color:var(--head);font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .note{max-width:250px;white-space:normal!important;font-size:11px;line-height:1.35}
+  .heatstrip{display:inline-flex;gap:2px;vertical-align:middle}
+  .hcell{width:15px;height:14px;border-radius:2px;display:inline-block}
   .note a{color:var(--dim);border-bottom:1px dotted #33415c}
   .note a:hover{color:var(--accent);border-bottom-color:var(--accent)}
   .fx{display:inline-block;margin-left:5px;font-size:9px;color:var(--amber);border:1px solid #3a3015;background:#1d1808;border-radius:3px;padding:0 4px;vertical-align:middle}
@@ -155,6 +157,7 @@
     <button data-v="heat">Heatmap</button>
     <button data-v="cycle">Cycle</button>
     <button data-v="fs">FactSet</button>
+    <button data-v="tw">TW Monthly</button>
     <button data-v="cases">Case Studies</button>
   </span>
   <span class="seg" id="groupby">
@@ -176,6 +179,7 @@
 <div class="hm hidden" id="heatWrap"></div>
 <div class="cy hidden" id="cycleWrap"></div>
 <div class="fs hidden" id="fsWrap"></div>
+<div class="fs hidden" id="twWrap"></div>
 <div class="cs hidden" id="casesWrap"></div>
 
 <div class="foot" id="foot"></div>
@@ -191,20 +195,21 @@ const COLS = [
   {k:"ret5y", label:"5Y",    grp:""},
   {k:"val",   label:"Val",   grp:"VALUATION"},
 ];
-let CFG=null, MKT=null, CYC=null, FS=null, CS=null, NOTES=null, state={view:"table", group:"sector", sort:"ret1d", dir:-1, filter:""};
+let CFG=null, MKT=null, CYC=null, FS=null, CS=null, NOTES=null, TW=null, state={view:"table", group:"sector", sort:"ret1d", dir:-1, filter:""};
 const collapsed = new Set();
 
 async function load(){
   try{
-    const [c,m,cy,fs,cs,nt] = await Promise.all([
+    const [c,m,cy,fs,cs,nt,tw] = await Promise.all([
       fetch("sectors.json").then(r=>r.json()),
       fetch("market.json").then(r=>r.json()).catch(()=>({stocks:{}})),
       fetch("cycle.json").then(r=>r.json()).catch(()=>null),
       fetch("factset.json").then(r=>r.json()).catch(()=>null),
       fetch("casestudies.json").then(r=>r.json()).catch(()=>null),
-      fetch("notes.json").then(r=>r.json()).catch(()=>null)
+      fetch("notes.json").then(r=>r.json()).catch(()=>null),
+      fetch("monthlies.json").then(r=>r.json()).catch(()=>null)
     ]);
-    CFG=c; MKT=m; CYC=cy; FS=fs; CS=cs; NOTES=nt;
+    CFG=c; MKT=m; CYC=cy; FS=fs; CS=cs; NOTES=nt; TW=tw;
     const n = countTickers();
     const upd = m.updated ? new Date(m.updated).toLocaleString() : "no data yet";
     document.getElementById("sub").innerHTML =
@@ -451,6 +456,48 @@ function renderFS(){
   w.innerHTML=html;
 }
 
+// ---- TW monthlies render ----
+function twHeatStrip(yoy){
+  const last12=(yoy||[]).slice(-12);
+  return `<span class="heatstrip">`+last12.map(([k,v])=>
+    `<span class="hcell" style="background:${heatColor(v,40)}" title="${k}: ${v==null?"—":(v>0?"+":"")+v+"% YoY"}"></span>`).join("")+`</span>`;
+}
+function renderTW(){
+  const w=document.getElementById("twWrap");
+  if(!TW){w.innerHTML=`<div class="fscard">No monthlies.json yet — the GitHub Action builds it on the next run (python fetch_tw_monthlies.py). Taiwan names post monthly revenue by the ~10th.</div>`;return;}
+  let html=`<h2 style="font-size:13px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin:4px 0 8px">Taiwan monthly revenue — AI supply chain</h2>`;
+  const comp=TW.odmComposite||[];
+  if(comp.length){
+    const last=comp[comp.length-1];
+    html+=`<div class="cycard" style="max-width:720px;margin-bottom:12px"><div class="cylabel">AI server ODM composite — aggregate revenue YoY</div>`+
+      `<div class="cyval">${last[1]>0?"+":""}${last[1]}%<small style="color:${trendColor(last[1])}">${last[0]}</small></div>`+
+      spark(comp,"#58a6ff")+`<div class="cysrc">Hon Hai + Quanta + Wistron + Wiwynn + Inventec + Compal + Pegatron + Gigabyte + MiTAC + Asus, NT$, common-name months only</div></div>`;
+  }
+  const groups={};
+  Object.entries(TW.names||{}).forEach(([code,x])=>{groups[x.group]=groups[x.group]||[];groups[x.group].push([code,x]);});
+  html+=`<div class="scrollx"><table style="max-width:1100px"><thead><tr>`+
+    `<th class="l" style="position:static">Company</th><th style="position:static">Month</th><th style="position:static">Rev NT$bn</th>`+
+    `<th style="position:static">MoM</th><th style="position:static">YoY</th><th style="position:static">3M YoY</th>`+
+    `<th class="l" style="position:static">Last 12M YoY</th><th class="l" style="position:static">5y revenue</th></tr></thead><tbody>`;
+  const order=["Foundry","AI Server ODM","Chassis / Rails","Power / Cooling","Networking / Components"];
+  order.forEach(g=>{
+    if(!groups[g]) return;
+    html+=`<tr class="grouphdr"><td colspan="8">${g}</td></tr>`;
+    groups[g].sort((a,b)=>(b[1].latest.yoy??-999)-(a[1].latest.yoy??-999)).forEach(([code,x])=>{
+      const L=x.latest;
+      html+=`<tr><td class="l"><span class="tk">${x.n}</span> <span style="color:var(--head);font-size:10px">${code}</span></td>`+
+        `<td style="color:var(--dim)">${L.ym}</td>`+
+        `<td>${L.revM!=null?(L.revM/1000).toFixed(1):"—"}</td>`+
+        `<td>${fmtPct(L.mom)}</td><td>${fmtPct(L.yoy)}</td><td>${fmtPct(L.t3mYoy)}</td>`+
+        `<td class="l">${twHeatStrip(x.yoy)}</td>`+
+        `<td class="l">${spark(x.series,"#8ad1ff")||""}</td></tr>`;
+    });
+  });
+  html+=`</tbody></table></div>`;
+  html+=`<div class="cysrc" style="margin-top:10px;max-width:1100px">Company-level TOTAL revenue (Hon Hai includes iPhones, Quanta includes notebooks) — read the ACCELERATION, not the level. Purest AI-server reads: Wiwynn, Chenbro, King Slide, AVC, Auras. Updated ${TW.updated?new Date(TW.updated).toLocaleDateString():""} · ${TW.source||""}</div>`;
+  w.innerHTML=html;
+}
+
 // ---- case studies render ----
 function csChart(series,color,h){
   if(!series||series.length<2) return "";
@@ -522,12 +569,13 @@ function render(){
   document.getElementById("heatWrap").classList.toggle("hidden",v!=="heat");
   document.getElementById("cycleWrap").classList.toggle("hidden",v!=="cycle");
   document.getElementById("fsWrap").classList.toggle("hidden",v!=="fs");
+  document.getElementById("twWrap").classList.toggle("hidden",v!=="tw");
   document.getElementById("casesWrap").classList.toggle("hidden",v!=="cases");
-  const plain=(v==="cycle"||v==="fs"||v==="cases");
+  const plain=(v==="cycle"||v==="fs"||v==="cases"||v==="tw");
   document.getElementById("groupby").style.display = plain ? "none" : "";
   document.getElementById("filter").style.display = plain ? "none" : "";
   if(v==="table") renderTable(); else if(v==="heat") renderHeat();
-  else if(v==="fs") renderFS(); else if(v==="cases") renderCases(); else renderCycle();
+  else if(v==="fs") renderFS(); else if(v==="tw") renderTW(); else if(v==="cases") renderCases(); else renderCycle();
   document.getElementById("foot").innerHTML =
     `Data via Yahoo Finance (yfinance), FRED, Google News RSS and FactSet (GeoRev / Supply Chain via MCP), refreshed daily after US close by GitHub Actions. `+
     `Foreign-listed (FX) names shown in local-currency price/returns. Not investment advice.`;
