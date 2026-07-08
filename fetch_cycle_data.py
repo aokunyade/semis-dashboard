@@ -19,6 +19,7 @@ import json
 import re
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from io import StringIO
 from pathlib import Path
 
@@ -52,12 +53,29 @@ RSS_URL = ("https://news.google.com/rss/search?"
 BUBBLE_WORDS = ["bubble", "overbuild", "overcapacity", "oversupply", "glut", "froth",
                 "overheated", "correction", "crash", "selloff", "sell-off", "slump",
                 "downturn", "cancel", "pullback", "slowdown", "cooling", "burst",
-                "warning", "doubts", "skeptic", "fears", "stretched", "circular",
-                "too far", "cracks", "reckoning", "unravel"]
+                "warn", "doubts", "skeptic", "fears", "stretched", "circular",
+                "too far", "cracks", "reckoning", "unravel",
+                # bearish market action / risk-off language (was missing -- bearish
+                # headlines were falling through to neutral or even "demand")
+                "tumble", "plunge", "sink", "slide", "slid", "stumble", "retreat",
+                "rout", "swoon", "dive", "drop", "falls", "fell", "losses",
+                "bear territory", "bear market", "short bet", "short seller",
+                "short-sell", "worries", "worry", "concern", "jitters", "danger",
+                "weak", "misses", "cuts", "turmoil", "question", "fizzle",
+                "pull back", "pulls back", "beginning of the end"]
 DEMAND_WORDS = ["demand", "shortage", "record", "surge", "boom", "capex", "expansion",
                 "ramp", "sold out", "tight", "orders", "beats", "raises", "accelerat",
-                "upgrade", "rally", "growth", "spending", "buildout", "investment",
+                "upgrade", "rally", "growth", "buildout",
                 "insatiable", "supercycle", "breakneck", "all-time high"]
+
+# Only score headlines actually about semis/AI-compute -- the Google News query
+# matches "chips" loosely and pulls in oil, banks, shipbuilders etc., which
+# polluted the tone counts.
+RELEVANT_RE = re.compile(
+    r"\b(chips?|chipmakers?|chip-?stacking|semiconductors?|semis|nvidia|tsmc|amd"
+    r"|intel|micron|hynix|samsung|foundry|wafers?|memory|dram|nand|hbm|gpus?"
+    r"|asics?|ai|data.?centers?|hyperscalers?|lithography|asml|broadcom|qualcomm"
+    r"|sox)\b")
 
 
 def pct(a, b):
@@ -245,17 +263,30 @@ def sentiment():
     root = ET.fromstring(r.content)
     items = root.findall(".//item")
     bubble = demand = neutral = 0
+    b7 = d7 = 0
+    now = datetime.now(timezone.utc)
     tagged = []
     for it in items[:80]:
         title = (it.findtext("title") or "").strip()
         low = title.lower()
+        if not RELEVANT_RE.search(low):
+            continue  # off-topic (oil, banks, shipping...) -- don't score
+        recent = False
+        try:
+            recent = (now - parsedate_to_datetime(it.findtext("pubDate"))).days < 7
+        except Exception:
+            pass
         b = sum(1 for w in BUBBLE_WORDS if w in low)
         d = sum(1 for w in DEMAND_WORDS if w in low)
-        if b > d:
+        # tie goes to bubble: warning language ("rally into danger zone",
+        # "chips pull back in mixed day") is usually the point of the headline
+        if b > d or (b and b == d):
             bubble += 1
+            b7 += recent
             tag = "bubble"
         elif d > b:
             demand += 1
+            d7 += recent
             tag = "demand"
         else:
             neutral += 1
@@ -264,8 +295,10 @@ def sentiment():
             tagged.append({"t": re.sub(r"\s+-\s+WSJ.*$", "", title), "tag": tag})
     total = bubble + demand
     score = round((bubble - demand) / total, 2) if total else 0.0
+    score7 = round((b7 - d7) / (b7 + d7), 2) if (b7 + d7) else None
     return {"score": score, "bubble": bubble, "demand": demand, "neutral": neutral,
-            "total": len(items), "headlines": tagged}
+            "bubble7": b7, "demand7": d7, "score7": score7,
+            "total": bubble + demand + neutral, "headlines": tagged}
 
 
 # ---- composite ---------------------------------------------------------------
