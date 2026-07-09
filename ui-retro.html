@@ -194,6 +194,7 @@
     <button data-v="cycle">Cycle</button>
     <button data-v="fs">FactSet</button>
     <button data-v="tw">TW Monthly</button>
+    <button data-v="hyp">Hyperscalers</button>
     <button data-v="cases">Case Studies</button>
   </span>
   <span class="seg" id="groupby">
@@ -219,6 +220,7 @@
 <div class="hidden" id="cycleWrap"></div>
 <div class="hidden" id="fsWrap"></div>
 <div class="hidden" id="twWrap"></div>
+<div class="hidden" id="hypWrap"></div>
 <div class="hidden" id="casesWrap"></div>
 
 <div class="foot" id="foot"></div>
@@ -235,7 +237,7 @@ const COLS = [
   {k:"ret5y", label:"5Y",    grp:""},
   {k:"val",   label:"Val",   grp:"VALUATION"},
 ];
-let CFG=null, MKT=null, CYC=null, FS=null, CS=null, NOTES=null, TW=null, state={view:"table", group:"sector", sort:"ret1d", dir:-1, filter:""};
+let CFG=null, MKT=null, CYC=null, FS=null, CS=null, NOTES=null, TW=null, HYP=null, state={view:"table", group:"sector", sort:"ret1d", dir:-1, filter:""};
 const collapsed = new Set();
 
 /* ---------- ECharts plumbing ---------- */
@@ -261,12 +263,34 @@ function ecDiv(series,color,h,opts){
   return `<div class="ecwrap"><div id="${id}" style="width:100%;height:${h}px"></div></div>`+
          (useLog?`<span class="logchip">log scale</span>`:"");
 }
+function ecMultiDiv(defs,h){
+  if(!defs || !defs.length) return "";
+  const id="ec"+(++ECID);
+  ecPending.push({id, multi:defs, h});
+  return `<div class="ecwrap"><div id="${id}" style="width:100%;height:${h}px"></div></div>`;
+}
 function flushECharts(){
   ecPending.forEach(p=>{
     const el=document.getElementById(p.id);
     if(!el || el.offsetWidth===0){ return; }
     const c=echarts.init(el);
     ecLive.push(c);
+    if(p.multi){
+      c.setOption({
+        animation:false,
+        grid:{left:50,right:14,top:30,bottom:46},
+        legend:{top:0, icon:'circle', itemWidth:8, textStyle:{fontFamily:'Courier New', fontSize:10, color:'#454545'}},
+        tooltip:Object.assign({}, TIP, {valueFormatter:v=>v==null?"—":"$"+v+"B"}),
+        xAxis:{type:'time', axisLine:{lineStyle:{color:'#7a7358'}}, axisTick:{show:false},
+          axisLabel:{rotate:90, fontFamily:'Courier New', fontSize:9, color:'#6b654e',
+            formatter:v=>{const d=new Date(v); return MMM[d.getUTCMonth()]+"-"+String(d.getUTCFullYear()).slice(2);}}},
+        yAxis:{type:'value', axisLabel:{fontFamily:'Courier New', fontSize:9, color:'#6b654e', formatter:'${value}B'},
+          splitLine:{lineStyle:{color:'#e4dcc2'}}},
+        series:p.multi.map(s=>({name:s.name, type:'line', data:s.data, showSymbol:false,
+          lineStyle:{width:2, color:s.color, type:s.dashed?'dashed':'solid'}, itemStyle:{color:s.color}}))
+      });
+      return;
+    }
     c.setOption({
       animation:false,
       grid:{left:2,right:2,top:4,bottom:p.axis?42:2},
@@ -287,16 +311,17 @@ window.addEventListener('resize', ()=>ecLive.forEach(c=>{try{c.resize();}catch(e
 
 async function load(){
   try{
-    const [c,m,cy,fs,cs,nt,tw] = await Promise.all([
+    const [c,m,cy,fs,cs,nt,tw,hy] = await Promise.all([
       fetch("sectors.json").then(r=>r.json()),
       fetch("market.json").then(r=>r.json()).catch(()=>({stocks:{}})),
       fetch("cycle.json").then(r=>r.json()).catch(()=>null),
       fetch("factset.json").then(r=>r.json()).catch(()=>null),
       fetch("casestudies.json").then(r=>r.json()).catch(()=>null),
       fetch("notes.json").then(r=>r.json()).catch(()=>null),
-      fetch("monthlies.json").then(r=>r.json()).catch(()=>null)
+      fetch("monthlies.json").then(r=>r.json()).catch(()=>null),
+      fetch("hyperscalers.json").then(r=>r.json()).catch(()=>null)
     ]);
-    CFG=c; MKT=m; CYC=cy; FS=fs; CS=cs; NOTES=nt; TW=tw;
+    CFG=c; MKT=m; CYC=cy; FS=fs; CS=cs; NOTES=nt; TW=tw; HYP=hy;
     const n = countTickers();
     const upd = m.updated ? new Date(m.updated).toLocaleString() : "no data yet";
     document.getElementById("sub").innerHTML =
@@ -641,6 +666,62 @@ function renderTW(){
   w.innerHTML=html;
 }
 
+/* ---------- hyperscalers render ---------- */
+function renderHyp(){
+  const w=document.getElementById("hypWrap");
+  if(!HYP){w.innerHTML=`<div class="win"><div class="tbar teal"><span>⑦ Hyperscalers</span><span class="glyphs">&ndash; &#9633; &times;</span></div><div class="body">No hyperscalers.json yet — ask Claude to refresh it from FactSet.</div></div>`;return;}
+  const C=HYP.companies;
+  let html="";
+  html+=`<div class="cygrid" style="margin-top:16px">`;
+  C.forEach(c=>{
+    const q=c.qtr, last=q[q.length-1], yrAgo=q[q.length-5];
+    const yoy=yrAgo?100*(last[1]/yrAgo[1]-1):null;
+    const ttm=q.slice(-4).reduce((a,b)=>a+b[1],0);
+    html+=`<div class="cycard"><div class="cylabel">${c.t} — ${c.n}</div>`+
+      `<div class="cyval">$${(last[1]/1000).toFixed(1)}B<small style="color:${yoy>=0?"var(--green)":"var(--red)"}">${yoy!=null?(yoy>0?"+":"")+yoy.toFixed(0)+"% YoY":""} · ${mmmYY(last[0])} qtr</small></div>`+
+      `<div class="cysrc">TTM $${(ttm/1000).toFixed(0)}B · FY ends ${c.fy}</div></div>`;
+  });
+  html+=`</div>`;
+  html+=`<div class="win"><div class="tbar teal"><span>⑦ Quarterly capex — actuals ($B)</span><span class="glyphs">&ndash; &#9633; &times;</span></div><div class="body">`+
+    ecMultiDiv(C.map(c=>({name:c.t, color:c.color, data:c.qtr.map(p=>[p[0], +(p[1]/1000).toFixed(1)])})),300)+
+    `<div class="cysrc">Cash capex from the cash-flow statement (excl. finance leases) · plotted at fiscal quarter-end · FactSet Fundamentals</div></div></div>`;
+  const FYC={"2025":"#7a7a7a","2026":"#4f6bd8","2027":"#2f8f75","2028":"#c8622f"};
+  html+=`<div class="sect">Consensus capex — how estimates moved over the last 12 months <span class="tag">FactSet consensus mean · monthly snapshots</span></div>`;
+  html+=`<div class="grid2">`;
+  C.forEach(c=>{
+    const ys=Object.keys(c.est);
+    const defs=ys.map(y=>({name:c.est[y].label, color:FYC[y], dashed:y==="2025",
+      data:c.est[y].pts.map(p=>[p[0], +(p[1]/1000).toFixed(1)])}));
+    const chg=ys.map(y=>{
+      const pts=c.est[y].pts, d=100*(pts[pts.length-1][1]/pts[0][1]-1);
+      return `${c.est[y].label.split(" ")[0]} <span class="${d>=0?"pos":"neg"}">${d>0?"+":""}${d.toFixed(0)}%</span>`;
+    }).join(" · ");
+    html+=`<div class="win"><div class="tbar teal"><span>${c.t} — consensus FY capex ($B)</span><span class="glyphs">&ndash; &#9633; &times;</span></div><div class="body">`+
+      ecMultiDiv(defs,230)+
+      `<div class="cysrc">Revision over the last 12m: ${chg}</div></div></div>`;
+  });
+  html+=`</div>`;
+  html+=`<div class="win"><div class="tbar teal"><span>Estimate revisions — consensus now vs 3m / 6m / 12m ago ($B)</span><span class="glyphs">&ndash; &#9633; &times;</span></div><div class="body scrollx">`;
+  html+=`<table style="max-width:980px"><thead><tr><th class="l" style="position:static">Company</th><th class="l" style="position:static">Fiscal yr</th>`+
+    `<th style="position:static">Now</th><th style="position:static">3m ago</th><th style="position:static">6m ago</th><th style="position:static">12m ago</th><th style="position:static">Δ 12m</th></tr></thead><tbody>`;
+  C.forEach(c=>{
+    const ys=Object.keys(c.est);
+    ys.forEach((y,i)=>{
+      const pts=c.est[y].pts, n=pts.length;
+      const now=pts[n-1][1], m3=pts[n-4]?pts[n-4][1]:null, m6=pts[n-7]?pts[n-7][1]:null, m12=pts[0][1];
+      const d=100*(now/m12-1);
+      html+=`<tr>${i===0?`<td class="l tk" rowspan="${ys.length}">${c.t}</td>`:""}<td class="l">${c.est[y].label}</td>`+
+        `<td class="last">${(now/1000).toFixed(1)}</td><td>${m3!=null?(m3/1000).toFixed(1):"—"}</td>`+
+        `<td>${m6!=null?(m6/1000).toFixed(1):"—"}</td><td>${(m12/1000).toFixed(1)}</td>`+
+        `<td>${fmtPct(+d.toFixed(1))}</td></tr>`;
+    });
+  });
+  html+=`</tbody></table>`;
+  html+=`<div class="cysrc" style="margin-top:8px;max-width:980px">${HYP.note||""} Grey dashed line = fiscal year already reported (frozen at actual). Updated ${HYP.updated?new Date(HYP.updated).toLocaleDateString():""} · refresh on demand via FactSet MCP.</div>`;
+  html+=`</div></div>`;
+  w.innerHTML=html;
+}
+
 /* ---------- case studies render ---------- */
 function csMcap(x){return x.mcap?`<div class="csmeta">mkt cap ${x.mcap.replace(/->/g,"→")} <span style="opacity:.6">(est.)</span></div>`:"";}
 function csSub(x){return (x.sub||[]).map(s=>`<div class="cssubb">${s}</div>`).join("");}
@@ -701,12 +782,13 @@ function render(){
   document.getElementById("cycleWrap").classList.toggle("hidden",v!=="cycle");
   document.getElementById("fsWrap").classList.toggle("hidden",v!=="fs");
   document.getElementById("twWrap").classList.toggle("hidden",v!=="tw");
+  document.getElementById("hypWrap").classList.toggle("hidden",v!=="hyp");
   document.getElementById("casesWrap").classList.toggle("hidden",v!=="cases");
-  const plain=(v==="cycle"||v==="fs"||v==="cases"||v==="tw");
+  const plain=(v==="cycle"||v==="fs"||v==="cases"||v==="tw"||v==="hyp");
   document.getElementById("groupby").style.display = plain ? "none" : "";
   document.getElementById("filter").style.display = plain ? "none" : "";
   if(v==="table") renderTable(); else if(v==="heat") renderHeat();
-  else if(v==="fs") renderFS(); else if(v==="tw") renderTW(); else if(v==="cases") renderCases(); else renderCycle();
+  else if(v==="fs") renderFS(); else if(v==="tw") renderTW(); else if(v==="hyp") renderHyp(); else if(v==="cases") renderCases(); else renderCycle();
   flushECharts();
   document.getElementById("foot").innerHTML =
     `Data via Yahoo Finance (yfinance), FRED, Google News RSS and FactSet (GeoRev / Supply Chain via MCP), refreshed daily after US close by GitHub Actions. `+
