@@ -269,12 +269,38 @@ function ecMultiDiv(defs,h){
   ecPending.push({id, multi:defs, h});
   return `<div class="ecwrap"><div id="${id}" style="width:100%;height:${h}px"></div></div>`;
 }
+function ecBarsDiv(cats,series,h){
+  if(!series || !series.length) return "";
+  const id="ec"+(++ECID);
+  ecPending.push({id, bars:{cats, series}, h});
+  return `<div class="ecwrap"><div id="${id}" style="width:100%;height:${h}px"></div></div>`;
+}
 function flushECharts(){
   ecPending.forEach(p=>{
     const el=document.getElementById(p.id);
     if(!el || el.offsetWidth===0){ return; }
     const c=echarts.init(el);
     ecLive.push(c);
+    if(p.bars){
+      c.setOption({
+        animation:false,
+        grid:{left:44,right:10,top:32,bottom:26},
+        legend:{top:0, icon:'circle', itemWidth:8, textStyle:{fontFamily:'Courier New', fontSize:10, color:'#454545'}},
+        tooltip:{trigger:'axis', axisPointer:{type:'shadow'}, appendToBody:true, backgroundColor:'#fdf8e7',
+          borderColor:'#232323', borderWidth:1.5, textStyle:{color:'#232323', fontFamily:'Courier New', fontSize:11},
+          valueFormatter:v=>v==null?"—":(v>0?"+":"")+v+"%"},
+        xAxis:{type:'category', data:p.bars.cats, axisTick:{show:false},
+          axisLine:{lineStyle:{color:'#7a7358'}},
+          axisLabel:{fontFamily:'Courier New', fontSize:10, color:'#6b654e'}},
+        yAxis:{type:'value', axisLabel:{fontFamily:'Courier New', fontSize:9, color:'#6b654e', formatter:'{value}%'},
+          splitLine:{lineStyle:{color:'#e4dcc2'}}},
+        series:p.bars.series.map(s=>({name:s.name, type:'bar', data:s.data, barGap:'10%',
+          itemStyle:{color:s.color, borderColor:'#232323', borderWidth:1},
+          label:{show:true, position:'top', fontSize:8, fontFamily:'Courier New', color:'#454545',
+            formatter:d=>d.value==null?"":(d.value>0?"+":"")+d.value+"%"}}))
+      });
+      return;
+    }
     if(p.multi){
       c.setOption({
         animation:false,
@@ -672,15 +698,28 @@ function renderHyp(){
   if(!HYP){w.innerHTML=`<div class="win"><div class="tbar teal"><span>⑦ Hyperscalers</span><span class="glyphs">&ndash; &#9633; &times;</span></div><div class="body">No hyperscalers.json yet — ask Claude to refresh it from FactSet.</div></div>`;return;}
   const C=HYP.companies;
   let html="";
+  function snapVal(c,y,when){
+    const p=c.est[y]&&c.est[y].pts; if(!p) return null;
+    if(when==="last") return p[p.length-1][1];
+    const j=p.findIndex(x=>x[0]===when); return j>=0?p[j][1]:null;
+  }
   html+=`<div class="cygrid" style="margin-top:16px">`;
   C.forEach(c=>{
     const q=c.qtr, last=q[q.length-1], yrAgo=q[q.length-5];
     const yoy=yrAgo?100*(last[1]/yrAgo[1]-1):null;
     const ttm=q.slice(-4).reduce((a,b)=>a+b[1],0);
+    const e26=c.est["2026"], e26now=snapVal(c,"2026","last"), e26soy=snapVal(c,"2026","2026-01");
+    const rev=e26soy?100*(e26now/e26soy-1):null;
     html+=`<div class="cycard"><div class="cylabel">${c.t} — ${c.n}</div>`+
-      `<div class="cyval">$${(last[1]/1000).toFixed(1)}B<small style="color:${yoy>=0?"var(--green)":"var(--red)"}">${yoy!=null?(yoy>0?"+":"")+yoy.toFixed(0)+"% YoY":""} · ${mmmYY(last[0])} qtr</small></div>`+
-      `<div class="cysrc">TTM $${(ttm/1000).toFixed(0)}B · FY ends ${c.fy}</div></div>`;
+      `<div class="cyval">$${(e26now/1000).toFixed(0)}B<small style="color:var(--dim)">${e26.label} consensus capex${rev!=null?` · <span class="${rev>=0?"pos":"neg"}">${rev>0?"+":""}${rev.toFixed(0)}% YTD</span>`:""}</small></div>`+
+      `<div class="cysrc">Latest qtr $${(last[1]/1000).toFixed(1)}B (${yoy!=null?(yoy>0?"+":"")+yoy.toFixed(0)+"% YoY":""}, ${mmmYY(last[0])}) · TTM $${(ttm/1000).toFixed(0)}B · FY ends ${c.fy}</div></div>`;
   });
+  const agg26now=C.reduce((a,c)=>a+(snapVal(c,"2026","last")||0),0);
+  const agg26soy=C.reduce((a,c)=>a+(snapVal(c,"2026","2026-01")||0),0);
+  const aggRev=100*(agg26now/agg26soy-1);
+  html+=`<div class="cycard" style="border-width:3px"><div class="cylabel">ALL 5 — aggregate FY26E</div>`+
+    `<div class="cyval">$${(agg26now/1000).toFixed(0)}B<small><span class="${aggRev>=0?"pos":"neg"}">${aggRev>0?"+":""}${aggRev.toFixed(0)}%</span> vs start of year</small></div>`+
+    `<div class="cysrc">Sum of FY26 consensus capex (mixed fiscal year-ends)</div></div>`;
   html+=`</div>`;
   html+=`<div class="win"><div class="tbar teal"><span>⑦ Quarterly capex — actuals ($B)</span><span class="glyphs">&ndash; &#9633; &times;</span></div><div class="body">`+
     ecMultiDiv(C.map(c=>({name:c.t, color:c.color, data:c.qtr.map(p=>[p[0], +(p[1]/1000).toFixed(1)])})),300)+
@@ -719,6 +758,34 @@ function renderHyp(){
   html+=`</tbody></table>`;
   html+=`<div class="cysrc" style="margin-top:8px;max-width:980px">${HYP.note||""} Grey dashed line = fiscal year already reported (frozen at actual). Updated ${HYP.updated?new Date(HYP.updated).toLocaleDateString():""} · refresh on demand via FactSet MCP.</div>`;
   html+=`</div></div>`;
+  // growth expectations: start of year vs today
+  const PREV={"2026":"2025","2027":"2026","2028":"2027"};
+  function growthBars(when){
+    const cats=C.map(c=>c.t).concat(["AGG"]);
+    const fys=["2026","2027","2028"];
+    const cols={"2026":"#4f6bd8","2027":"#2f8f75","2028":"#c8622f"};
+    const series=fys.map(y=>({name:"FY"+y.slice(2)+" YoY", color:cols[y], data:[]}));
+    C.forEach(c=>{
+      fys.forEach((y,i)=>{
+        const a=snapVal(c,y,when), b=snapVal(c,PREV[y],when);
+        series[i].data.push(a!=null&&b?+(100*(a/b-1)).toFixed(0):null);
+      });
+    });
+    const sums={};
+    ["2025","2026","2027","2028"].forEach(y=>{sums[y]=C.reduce((s,c)=>s+(snapVal(c,y,when)||0),0);});
+    fys.forEach((y,i)=>{series[i].data.push(+(100*(sums[y]/sums[PREV[y]]-1)).toFixed(0));});
+    return series;
+  }
+  html+=`<div class="sect">Growth expectations — what the street penciled in, then vs now <span class="tag">YoY capex growth implied by consensus</span></div>`;
+  html+=`<div class="grid2">`;
+  html+=`<div class="win"><div class="tbar yellow"><span>START OF YEAR — Jan-26 consensus</span><span class="glyphs">&ndash; &#9633; &times;</span></div><div class="body">`+
+    ecBarsDiv(C.map(c=>c.t).concat(["AGG"]), growthBars("2026-01"), 250)+
+    `<div class="cysrc">YoY growth each fiscal year implied by the Jan-2026 consensus snapshot</div></div></div>`;
+  html+=`<div class="win"><div class="tbar yellow"><span>TODAY — latest consensus</span><span class="glyphs">&ndash; &#9633; &times;</span></div><div class="body">`+
+    ecBarsDiv(C.map(c=>c.t).concat(["AGG"]), growthBars("last"), 250)+
+    `<div class="cysrc">Same calculation on the latest snapshot — the gap vs the left chart is this year's re-rating of the capex cycle</div></div></div>`;
+  html+=`</div>`;
+  html+=`<div class="cysrc" style="margin-top:10px">FY26/27/28 growth = consensus capex for that fiscal year ÷ prior fiscal year (consensus or actual) at the same snapshot date. AGG = all five summed before computing growth. ORCL rows use FactSet fiscal labels (FYE May of the following year).</div>`;
   w.innerHTML=html;
 }
 
